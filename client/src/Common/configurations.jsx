@@ -22,11 +22,25 @@ export const configMultiPart = {
 };
 
 export const handleError = (error, rejectWithValue) => {
-  if (error.response && error.response.data.error) {
-    console.log(error.response.data.error);
-
-    return rejectWithValue(error.response.data.error);
+  if (error.response) {
+    const status = error.response.status;
+    const errorMessage = error.response.data.error || error.response.data.message || error.message;
+    
+    console.log('API Error:', {
+      status,
+      message: errorMessage,
+      url: error.config?.url,
+      method: error.config?.method
+    });
+    
+    // Handle specific error codes
+    if (status === 413) {
+      return rejectWithValue("Files too large. Please reduce image sizes and try again.");
+    }
+    
+    return rejectWithValue(errorMessage);
   } else {
+    console.log('Network/Other Error:', error.message);
     return rejectWithValue(error.message);
   }
 };
