@@ -8,47 +8,46 @@ const path = require("path");
 
 const app = express();
 
-// Mounting necessary middlewares.
+// ---------------------- MIDDLEWARES ----------------------
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Increased from 10mb to 50mb
-app.use(express.json({ limit: '50mb' })); // Increased from 10mb to 50mb
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: "50mb" }));
 app.use(logger("dev"));
 
 // Serve static files from React build
-app.use(express.static(path.join(__dirname, '../client/dist')));
+app.use(express.static(path.join(__dirname, "../client/dist")));
 
+// ✅ CORS setup (allow Vite + production domains)
 const corsOptions = {
-  origin: ["http://localhost:5173", "https://sagey.in", "https://www.sagey.in"],
+  origin: [
+    "http://localhost:5173", // Vite frontend
+    "http://localhost:5174", // if using another dev port
+    "http://localhost:3000", // optional for backend direct calls
+    "https://sagey.in",
+    "https://www.sagey.in",
+  ],
   credentials: true,
   optionsSuccessStatus: 200,
 };
-
 app.use(cors(corsOptions));
 
-// Handling preflight requests manually
-app.use((req, res, next) => {
-  if (req.method === "OPTIONS") {
-    res.header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Origin, Authorization");
-    return res.status(200).json({});
-  }
-  next();
-});
+// Handle preflight (OPTIONS) requests
+app.options("*", cors(corsOptions));
 
-// Simple test routes
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    message: 'Server is running!', 
+// ---------------------- TEST ROUTES ----------------------
+app.get("/api/health", (req, res) => {
+  res.json({
+    message: "Server is running!",
     timestamp: new Date(),
-    status: 'OK'
+    status: "OK",
   });
 });
 
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Test route working!' });
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Test route working!" });
 });
 
-// Try to load routes if they exist
+// ---------------------- API ROUTES ----------------------
 try {
   const userRoutes = require("./routes/user");
   const adminRoutes = require("./routes/admin");
@@ -56,7 +55,6 @@ try {
   const publicRoutes = require("./routes/public");
   const authRoutes = require("./routes/auth");
 
-  // Mounting the routes
   app.use("/api/auth", authRoutes);
   app.use("/api/user", userRoutes);
   app.use("/api/admin", adminRoutes);
@@ -68,62 +66,58 @@ try {
   console.log("Error loading routes:", error.message);
 }
 
-// Public Api for accessing images
-app.use("/api/img", express.static(__dirname + "/public/products/"));
-app.use("/api/off", express.static(__dirname + "/public/official/"));
+// ---------------------- STATIC FILES ----------------------
+app.use("/api/img", express.static(path.join(__dirname, "public/products")));
+app.use("/api/off", express.static(path.join(__dirname, "public/official")));
 
-// Error handling middleware
+// ---------------------- ERROR HANDLING ----------------------
 app.use((error, req, res, next) => {
-  console.error('Server Error:', {
+  console.error("Server Error:", {
     message: error.message,
     stack: error.stack,
     url: req.url,
     method: req.method,
-    type: error.type || 'unknown'
+    type: error.type || "unknown",
   });
-  
-  if (error.code === 'LIMIT_FILE_SIZE') {
-    return res.status(413).json({ 
-      error: 'File too large. Maximum file size is 50MB per file.' 
-    });
+
+  if (error.code === "LIMIT_FILE_SIZE") {
+    return res.status(413).json({ error: "File too large (max 50MB)" });
   }
-  
-  if (error.code === 'LIMIT_FIELD_VALUE') {
-    return res.status(413).json({ 
-      error: 'Request payload too large. Maximum total size is 50MB.' 
-    });
+
+  if (error.code === "LIMIT_FIELD_VALUE") {
+    return res.status(413).json({ error: "Request payload too large (50MB)" });
   }
-  
-  if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-    return res.status(400).json({ 
-      error: 'Unexpected file field' 
-    });
+
+  if (error.code === "LIMIT_UNEXPECTED_FILE") {
+    return res.status(400).json({ error: "Unexpected file field" });
   }
-  
-  if (error.type === 'entity.too.large') {
-    return res.status(413).json({ 
-      error: 'Request entity too large. Please reduce file sizes or number of files.' 
-    });
+
+  if (error.type === "entity.too.large") {
+    return res.status(413).json({ error: "Request entity too large" });
   }
-  
-  res.status(500).json({ 
-    error: 'Internal Server Error',
-    details: process.env.NODE_ENV === 'development' ? error.message : undefined
+
+  res.status(500).json({
+    error: "Internal Server Error",
+    details: process.env.NODE_ENV === "development" ? error.message : undefined,
   });
 });
 
-// Serve React app for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist', 'index.html'));
+// ---------------------- FRONTEND FALLBACK ----------------------
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist", "index.html"));
 });
 
+// ---------------------- DATABASE + SERVER ----------------------
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    app.listen(process.env.PORT, '0.0.0.0', () => {
-      console.log(`Listening on Port: ${process.env.PORT} - DB Connected`);
+    const port = process.env.PORT || 3000;
+
+    // ✅ Explicitly log protocol (HTTP)
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`🚀 Server running at http://localhost:${port} - DB Connected`);
     });
   })
   .catch((error) => {
-    console.log(error);
+    console.error("MongoDB Connection Error:", error);
   });

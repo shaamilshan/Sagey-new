@@ -44,12 +44,8 @@ const OurProducts = () => {
               shuffleArray(userProducts)
                 .slice(0, 12)
                 .map((product, index) => (
-                  <div
-                    key={index}
-                    className="bg-white shadow-md rounded-[20px] p-4 text-center"
-                  >
-                    <ProductCard2 product={product} />
-                  </div>
+                  // The wrapping div has been removed. key is now on ProductCard2
+                  <ProductCard2 key={index} product={product} />
                 ))
             ) : (
               <div className="h-96 flex items-center justify-center col-span-full">

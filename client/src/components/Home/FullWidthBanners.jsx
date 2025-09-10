@@ -4,7 +4,7 @@ import banner2 from "../../assets/2nw.png";
 import banner3 from "../../assets/3nw.png";
 
 const FullWidthBanners = () => {
-  const banners = [banner1, banner2, banner3];
+  const banners = [banner1];
 
   return (
     <div className="w-full">

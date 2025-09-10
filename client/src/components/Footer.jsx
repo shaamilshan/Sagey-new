@@ -98,7 +98,7 @@ function Footer() {
 
             <div className="mb-6 md:mb-0 md:pl-4">
               <h4 className="text-lg font-bold mb-4">SAGEY</h4>
-              <p className="text-sm py-1">
+              <p className="text-sm py-1 break-words">
                 15/538-D<br />
                 SPACEQURE BULDING <br />
                 KARUTHAPARAMBA<br />

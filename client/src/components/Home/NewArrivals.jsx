@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { ChevronRight } from "lucide-react";
+import React, { useEffect, useState, useCallback } from "react";
+import useEmblaCarousel from 'embla-carousel-react';
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import ProductCard2 from "../Cards/ProductCard2";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserProducts } from "@/redux/actions/user/userProductActions";
@@ -7,13 +8,22 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import JustLoading from "../JustLoading";
 import AOS from "aos";
 import "aos/dist/aos.css";
-
-
+import { Button } from "@/components/ui/button";
 
 import top from '../../assets/topp.svg';
 import dress from '../../assets/dress.svg';
 import ethnic from '../../assets/ethnic.svg';
 import hijab from '../../assets/hijab.svg';
+
+const categories = [
+  { label: "TOPS", icon: top, category: "tops" },
+  { label: "GAWON", icon: dress, category: "dresses" },
+  { label: "ROMPER", icon: ethnic, category: "ethnic" },
+  { label: "KNEE LENGTH", icon: hijab, category: "hijabs" },
+];
+
+// To enable looping when all items are visible, we duplicate the array.
+const loopedCategories = categories.length > 0 ? [...categories, ...categories] : [];
 
 const NewArrivals = () => {
   const [wishlist, setWishlist] = useState([]);
@@ -21,6 +31,19 @@ const NewArrivals = () => {
   const navigate = useNavigate();
   const { userProducts, loading } = useSelector((state) => state.userProducts);
   const dispatch = useDispatch();
+  
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true, 
+    align: 'start' 
+  });
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   const toggleWishlist = (product) => {
     setWishlist((prev) =>
@@ -60,24 +83,14 @@ const NewArrivals = () => {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {userProducts && userProducts.length > 0 ? (
-                userProducts.slice(0, 4).map((product, index) => {
-                  const isWishlisted = wishlist.some(
-                    (item) => item._id === product._id
-                  );
-
-                  return (
-                    <div
-                      key={index}
-                      className="bg-white shadow-md rounded-[20px] p-4 text-center"
-                    >
-                      <ProductCard2
-                        product={product}
-                        isWishlisted={wishlist.some((item) => item._id === product._id)}
-                        onToggleWishlist={toggleWishlist}
-                      />
-                    </div>
-                  );
-                })
+                userProducts.slice(0, 4).map((product, index) => (
+                  <ProductCard2
+                    key={index}
+                    product={product}
+                    isWishlisted={wishlist.some((item) => item._id === product._id)}
+                    onToggleWishlist={toggleWishlist}
+                  />
+                ))
               ) : (
                 <div className="h-96 flex items-center justify-center col-span-full">
                   <p>Nothing to show</p>
@@ -98,30 +111,53 @@ const NewArrivals = () => {
         )}
       </div>
 
-      {/* Category Grid */}
+      {/* Category Slider */}
       <div className="mt-8 px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-10 max-w-7xl mx-auto">
-          {[
-            { label: "TOPS & TEES", icon: top, category: "tops" },
-            { label: "DRESSES", icon: dress, category: "dresses" },
-            { label: "ETHNIC WEAR", icon: ethnic, category: "ethnic" },
-            { label: "HIJABS", icon: hijab, category: "hijabs" },
-          ].map((item, index) => (
-            <div
-              key={index}
-              onClick={() => navigate(`/collections?search=${item.category}`)}
-              className="flex flex-col items-center justify-center bg-white rounded-[25px] px-6 py-5 w-full hover:scale-105 transition-transform duration-300 cursor-pointer shadow-md"
-            >
-              <img
-                src={item.icon}
-                alt={item.label}
-                className="w-10 h-10 mb-2"
-              />
-              <p className="text-[#065c63] text-sm font-semibold text-center">
-                {item.label}
-              </p>
+        <div className="relative max-w-7xl mx-auto">
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex -ml-4">
+              {loopedCategories.map((item, index) => (
+                <div
+                  key={index}
+                  // Shows 2 on mobile, 3 on tablet, 4 on large screens
+                  className="flex-[0_0_50%] min-w-0 pl-4 md:flex-[0_0_33.33%] lg:flex-[0_0_25%]"
+                >
+                  <div
+                    onClick={() => navigate(`/collections?search=${item.category}`)}
+                    className="flex flex-col items-center justify-center bg-white rounded-[25px] p-5 w-full h-full hover:scale-105 transition-transform duration-300 cursor-pointer shadow-md"
+                  >
+                    <img
+                      src={item.icon}
+                      alt={item.label}
+                      className="w-10 h-10 mb-2"
+                    />
+                    <p className="text-[#065c63] text-sm font-semibold text-center">
+                      {item.label}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+          {/* Navigation Buttons visible on all screens */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 rounded-full z-10"
+            onClick={scrollPrev}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            <span className="sr-only">Previous Category</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white/90 rounded-full z-10"
+            onClick={scrollNext}
+          >
+            <ChevronRight className="h-4 w-4" />
+            <span className="sr-only">Next Category</span>
+          </Button>
         </div>
       </div>
     </div>
