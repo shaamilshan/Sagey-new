@@ -7,24 +7,14 @@ import { Toaster } from "react-hot-toast";
 // Redux
 import { getUserDataFirst } from "./redux/actions/userActions";
 
-// General
-// import Home from "./page/public/Home";
-// import Contact from "./page/public/Contact";
-// import About from "./page/public/About";
-// import Error404 from "./page/public/Error404";
-
 // Components
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
-// Auth
+// ... (all your other imports)
 import Login from "./page/auth/Login";
 import Register from "./page/auth/Register";
-// import ValidateOTP from "./page/auth/ValidateOTP";
 import ForgetPassword from "./page/auth/ForgetPassword";
-
-// User
-// import CarouselTextSlider from "./components/CarouselTextSlider";
 import Dashboard from "./page/Dashboard";
 import ProductDetails from "./page/user/ProductDetails";
 import Cart from "./page/user/Cart";
@@ -39,31 +29,24 @@ import Addresses from "./page/user/profileDashboard/pages/addresses";
 import TrackOrder from "./page/user/profileDashboard/pages/trackOrder";
 import WishList from "./page/user/profileDashboard/pages/wishlist";
 import BuyNow from "./page/user/buyNow";
-
-// Admin
 import AdminDash from "./page/admin/Dashboard";
 import AdminHome from "./page/admin/pages/AdminHome";
 import Banner from "./page/admin/pages/banner/Banner";
 import Payments from "./page/admin/pages/payments/Payments";
 import Settings from "./page/admin/pages/Settings";
 import Help from "./page/admin/pages/Help";
-
 import ManageAdmins from "./page/admin/pages/admins/ManageAdmins";
 import Customers from "./page/admin/pages/customer/Customers";
 import CreateAdmin from "./page/admin/pages/admins/CreateAdmin";
-
 import Products from "./page/admin/pages/products/Products";
 import AddProducts from "./page/admin/pages/products/AddProducts";
 import EditProduct from "./page/admin/pages/products/EditProduct";
-
 import Categories from "./page/admin/pages/categories/Categories";
 import CreateCategory from "./page/admin/pages/categories/CreateCategory";
 import EditCategory from "./page/admin/pages/categories/EditCategory";
-
 import Orders from "./page/admin/pages/Order/Orders";
 import OrderDetails from "./page/admin/pages/Order/OrderDetails";
 import ReturnRequests from "./page/admin/pages/Order/ReturnRequests";
-
 import Coupon from "./page/admin/pages/coupon/Coupon";
 import CreateCoupon from "./page/admin/pages/coupon/CreateCoupon";
 import EditCoupon from "./page/admin/pages/coupon/EditCoupon";
@@ -78,6 +61,7 @@ import SingleProduct from "./page/user/others/SingleProduct";
 import Home2 from "./page/user/others/Home2";
 import SignUp from "./components/Auth/SignUp";
 import ProtectedRouteReg from "@/components/ProtectedRoute";
+
 
 function App() {
   const { user } = useSelector((state) => state.user);
@@ -103,112 +87,93 @@ function App() {
       <Toaster position="top-center" />
 
       <BrowserRouter>
-        {user ? user.role === "user" && <Navbar /> : <Navbar />}
+        {/* This div is the fix */}
+        <div className="overflow-x-hidden">
+          {user ? user.role === "user" && <Navbar /> : <Navbar />}
 
-        <Routes>
-          <Route
-            path="/"
-            element={
-              user ? (
-                user.role === "admin" || user.role === "superAdmin" ? (
-                  <Navigate to="/admin/" />
+          <Routes>
+            <Route
+              path="/"
+              element={
+                user ? (
+                  user.role === "admin" || user.role === "superAdmin" ? (
+                    <Navigate to="/admin/" />
+                  ) : (
+                    <Home2 />
+                  )
                 ) : (
-                  // <Home />
                   <Home2 />
-                  // <Dashboard />
                 )
-              ) : (
-                // <Home />
-                <Home2 />
-                // <Home />
-              )
-            }
-          />
-          {/* <CarouselTextSlider/> */}
-          <Route path="/about-us" element={<About />} />
-          <Route path="/contact-us" element={<Contact />} />
-          <Route path="/collection" element={<Collectionsold />} />
-          <Route path="/collections" element={<Collections />} />
-          {/* <Route path="/productnew" element={<SingleProduct2 />} /> */}
-          <Route path="/product" element={<ProductDetails />} />
-          <Route path="/home" element={<Dashboard />} />
+              }
+            />
+            <Route path="/about-us" element={<About />} />
+            <Route path="/contact-us" element={<Contact />} />
+            <Route path="/collection" element={<Collectionsold />} />
+            <Route path="/collections" element={<Collections />} />
+            <Route path="/product" element={<ProductDetails />} />
+            <Route path="/home" element={<Dashboard />} />
 
-          {/* Auth Pages */}
+            {/* Auth Pages */}
+            <Route path="login" element={<Login />} />
+            <Route
+              path="/sign-up"
+              element={isVerified ? <Navigate to="/register" /> : <SignUp />}
+            />
+            <Route
+              path="/register"
+              element={
+                isVerified ? (
+                  <ProtectedRouteReg>
+                    <Register />
+                  </ProtectedRouteReg>
+                ) : (
+                  <Navigate to="/sign-up" />
+                )
+              }
+            />
+            <Route path="forgot-password" element={<ForgetPassword />} />
+            
+            {/* User Routes */}
+            <Route path="/product/:id" element={<SingleProduct />} />
+            <Route path="/cart" element={<ProtectedRoute element={<Cart />} />} />
+            <Route
+              path="/checkout"
+              element={<ProtectedRoute element={<Checkout />} />}
+            />
+            <Route
+              path="/order-confirmation"
+              element={<ProtectedRoute element={<OrderConfirmation />} />}
+            />
+            <Route
+              path="/buy-now"
+              element={<ProtectedRoute element={<BuyNow />} />}
+            />
+            <Route
+              path="/dashboard"
+              element={<ProtectedRoute element={<ProfileDashboard />} />}
+            >
+              <Route index element={<Dash />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="order-history" element={<OrderHistory />} />
+              <Route path="order-history/detail/:id" element={<OrderDetail />} />
+              <Route path="wallet" element={<Wallet />} />
+              <Route path="addresses" element={<Addresses />} />
+              <Route path="track-order" element={<TrackOrder />} />
+              <Route path="wishlist" element={<WishList />} />
+              <Route path="find-coupons" element={<FindCoupons />} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
 
-          <Route path="login" element={<Login />} />
-          <Route
-        path="/sign-up"
-        element={isVerified ? <Navigate to="/register" /> : <SignUp />}
-      />
-
-
-
-<Route
-        path="/register"
-        element={
-          isVerified ? (
-            <ProtectedRouteReg>
-              <Register /> 
-            </ProtectedRouteReg>
-          ) : (
-            <Navigate to="/sign-up" /> 
-          )
-        }
-      />
-          {/* <Route path="register" element={<Register />} /> */}
-          {/* <Route path="otp" element={<ValidateOTP />} /> */}
-          <Route path="forgot-password" element={<ForgetPassword />} />
-
-          {/* General Pages */}
-          {/* <Route path="contact" element={<Contact />} /> */}
-          {/* <Route path="about" element={<About />} /> */}
-
-          {/* User Routes */}
-          <Route path="/product/:id" element={<SingleProduct />} />
-          {/* <Route path="/product/:id" element={<ProductDetails/>} /> */}
-
-          <Route path="/cart" element={<ProtectedRoute element={<Cart />} />} />
-
-          <Route
-            path="/checkout"
-            element={<ProtectedRoute element={<Checkout />} />}
-          />
-
-          <Route
-            path="/order-confirmation"
-            element={<ProtectedRoute element={<OrderConfirmation />} />}
-          />
-
-          <Route
-            path="/buy-now"
-            element={<ProtectedRoute element={<BuyNow />} />}
-          />
-
-          <Route
-            path="/dashboard"
-            element={<ProtectedRoute element={<ProfileDashboard />} />}
-          >
-            <Route index element={<Dash />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="order-history" element={<OrderHistory />} />
-            <Route path="order-history/detail/:id" element={<OrderDetail />} />
-            <Route path="wallet" element={<Wallet />} />
-            <Route path="addresses" element={<Addresses />} />
-            <Route path="track-order" element={<TrackOrder />} />
-            <Route path="wishlist" element={<WishList />} />
-            <Route path="find-coupons" element={<FindCoupons />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
-
-          {/* Admin Routes */}
-          {(user && user.role === "admin") ||
-          (user && user.role === "superAdmin") ? (
-            <Route path="/admin/*" element={<AdminRoutes />} />
-          ) : (
-            <Route path="/admin" element={<Navigate to="/" replace />} />
-          )}
-        </Routes>
-        {user ? user.role === "user" && <Footer /> : <Footer />}
+            {/* Admin Routes */}
+            {(user && user.role === "admin") ||
+            (user && user.role === "superAdmin") ? (
+              <Route path="/admin/*" element={<AdminRoutes />} />
+            ) : (
+              <Route path="/admin" element={<Navigate to="/" replace />} />
+            )}
+          </Routes>
+          {user ? user.role === "user" && <Footer /> : <Footer />}
+        </div>
       </BrowserRouter>
     </>
   );
@@ -249,7 +214,6 @@ function AdminRoutes() {
         <Route path="customers" element={<Customers />} />
         <Route path="settings" element={<Settings />} />
         <Route path="help" element={<Help />} />
-        {/* <Route path="*" element={<Error404 />} /> */}
       </Route>
     </Routes>
   );

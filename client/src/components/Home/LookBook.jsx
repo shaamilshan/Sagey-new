@@ -145,7 +145,7 @@ const LookBook = () => {
       
       {/* Lookbook Carousel Section */}
       <div className="mt-16">
-        <h2 className="text-4xl text-[#065c63] mb-8 text-white text-center">CHECK OUR LOOK-BOOK</h2>
+        <h2 className="text-3xl md:text-4xl text-[#065c63] mb-8 text-white text-center">CHECK OUR LOOK-BOOK</h2>
         
         {/* Carousel Container */}
         <div className="overflow-hidden">
