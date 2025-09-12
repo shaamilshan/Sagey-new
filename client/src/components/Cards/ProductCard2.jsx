@@ -4,14 +4,14 @@ import { Heart } from "lucide-react";
 
 const ProductCard2 = ({ product, isWishlisted, onToggleWishlist, showWishlistOnHover = false }) => {
   const navigate = useNavigate();
-  const originalPrice = product.markup || 0;
+  const originalPrice = Number(product.markup) || 0;
 
   return (
     <div className="cursor-pointer space-y-3 relative group">
-      {/* Card content - now this div will be the relative parent for the icon */}
+      {/* Card content */}
       <div
         onClick={() => navigate(`/product/${product._id}`)}
-        className="aspect-[3/4] w-full overflow-hidden relative" // Added 'relative' here!
+        className="aspect-[3/4] w-full overflow-hidden relative"
       >
         <img
           src={`${URL}/img/${product?.imageURL}`}
@@ -19,7 +19,7 @@ const ProductCard2 = ({ product, isWishlisted, onToggleWishlist, showWishlistOnH
           className="h-full w-full object-cover rounded-[20px] transition-transform duration-500 group-hover:scale-105"
         />
 
-        {/* Wishlist Icon - now positioned relative to the image wrapper */}
+        {/* Wishlist Icon */}
         {onToggleWishlist && (
           <button
             onClick={(e) => {
@@ -50,19 +50,21 @@ const ProductCard2 = ({ product, isWishlisted, onToggleWishlist, showWishlistOnH
             "Contrary to popular belief, Lorem Ipsum is not simply random text."}
         </p>
         
+        {/* MODIFIED PRICE BLOCK WITH RESPONSIVE FONT SIZES */}
         <div className="flex items-center justify-center gap-2">
-          {originalPrice > 0 ? (
+          {originalPrice > product.price ? (
             <>
-              <span className="text-lg font-semibold line-through">
-                ₹{originalPrice}
+              {/* text-sm on mobile, text-lg on larger screens */}
+              <span className="text-sm sm:text-lg font-semibold line-through text-gray-500">
+                ₹{originalPrice.toLocaleString()}
               </span>
-              <span className="text-sm text-gray-500">From</span>
-              <span className="text-lg font-semibold text-red-500">
-                ₹{product.price.toLocaleString()}
+              <span className="text-sm sm:text-lg font-semibold text-red-500">
+                From ₹{product.price.toLocaleString()}
               </span>
             </>
           ) : (
-            <span className="text-lg font-semibold text-red-500">
+            // text-sm on mobile, text-lg on larger screens
+            <span className="text-sm sm:text-lg font-semibold text-red-500">
               ₹{product.price.toLocaleString()}
             </span>
           )}
