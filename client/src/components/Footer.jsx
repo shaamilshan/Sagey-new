@@ -43,7 +43,7 @@ function Footer() {
 
       <footer className="bg-primary py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="ml-10 grid grid-cols-2 md:grid-cols-4 gap-6 w-full text-white">
+          <div className="ml-8 grid grid-cols-2 md:grid-cols-4 gap-6 w-full text-white">
             <div>
               <h4 className="text-lg  font-bold mb-4">SHOP</h4>
               <ul className="space-y-2">
@@ -98,7 +98,7 @@ function Footer() {
 
             <div className="mb-6 md:mb-0 md:pl-4">
               <h4 className="text-lg font-bold mb-4">SAGEY</h4>
-              <p className="text-sm py-1 break-words">
+              <p className="text-sm lg:text-md py-1 break-words">
                 15/538-D<br />
                 SPACEQURE BULDING <br />
                 KARUTHAPARAMBA<br />
