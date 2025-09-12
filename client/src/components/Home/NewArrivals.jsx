@@ -12,14 +12,14 @@ import { Button } from "@/components/ui/button";
 
 import top from '../../assets/topp.svg';
 import dress from '../../assets/dress.svg';
-import ethnic from '../../assets/ethnic.svg';
-import hijab from '../../assets/hijab.svg';
+import romper from '../../assets/ethnic.svg';
+import kneelength from '../../assets/kneelength.svg';
 
 const categories = [
-  { label: "TOPS", icon: top, category: "tops" },
-  { label: "GAWON", icon: dress, category: "dresses" },
-  { label: "ROMPER", icon: ethnic, category: "ethnic" },
-  { label: "KNEE LENGTH", icon: hijab, category: "hijabs" },
+  { label: "TOPS", icon: top, category: "TOPS" },
+  { label: "GAWON", icon: dress, category: "GAWON" },
+  { label: "ROMPER", icon: romper, category: "ROMPER" },
+  { label: "KNEE LENGTH", icon: kneelength, category: "KNEELENGTH" },
 ];
 
 // To enable looping when all items are visible, we duplicate the array.
