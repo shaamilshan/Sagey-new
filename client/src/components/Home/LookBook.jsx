@@ -47,6 +47,17 @@ const lookbookImages = [
 ]
 
 const AboutSection = () => {
+  const handleWhatsAppClick = () => {
+    const phoneNumber = '9633214514';
+    const message = encodeURIComponent('Hi! I saw your lookbook and I\'m interested in your designs.');
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleInstagramClick = () => {
+    window.open('https://www.instagram.com/sagey.in/', '_blank');
+  };
+
   return (
     <section className="w-full flex flex-col md:flex-row min-h-screen bg-primary">
       
@@ -93,13 +104,13 @@ const AboutSection = () => {
           <SocialIcon 
             type="whatsapp" 
             size="w-10 h-10"
-            onClick={() => window.open('https://wa.me/yourwhatsapplink', '_blank')}
+            onClick={handleWhatsAppClick}
             className="hover:scale-110 transform transition-transform duration-200"
           />
           <SocialIcon 
             type="instagram" 
             size="w-10 h-10"
-            onClick={() => window.open('https://instagram.com/yourinstalink', '_blank')}
+            onClick={handleInstagramClick}
             className="hover:scale-110 transform transition-transform duration-200"
           />
         </div>
