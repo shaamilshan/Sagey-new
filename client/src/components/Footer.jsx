@@ -25,7 +25,7 @@ function Footer() {
         <button
           onClick={() =>
             window.open(
-              'https://wa.me/919876543210?text=Hi%2C%20I%20am%20interested%20in%20wholesale%20opportunities.',
+              'https://wa.me/919400740061?text=Hi%2C%20I%20am%20interested%20in%20wholesale%20opportunities.',
               '_blank'
             )
           }
@@ -51,13 +51,13 @@ function Footer() {
                   <a href="/collections?search=top" className="hover:text-gray-400 transition-colors">TOP</a>
                 </li>
                 <li>
-                  <a href="/collections?search=ethnic" className="hover:text-gray-400 transition-colors">ETHIC WEAR</a>
+                  <a href="/collections?search=gown" className="hover:text-gray-400 transition-colors">GOWN</a>
                 </li>
                 <li>
-                  <a href="/collections?search=hijab" className="hover:text-gray-400 transition-colors">HIJAB</a>
+                  <a href="/collections?search=romper" className="hover:text-gray-400 transition-colors">ROMPER</a>
                 </li>
                 <li>
-                  <a href="/collections?search=cord" className="hover:text-gray-400 transition-colors">CORD SETS</a>
+                  <a href="/collections?search=knee length" className="hover:text-gray-400 transition-colors">KNEE LENGTH</a>
                 </li>
               </ul>
             </div>

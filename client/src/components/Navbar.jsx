@@ -135,11 +135,11 @@ const Navbar = () => {
             </a>
             
             <nav className="hidden lg:flex flex-1 justify-center gap-12 text-xl font-semibold text-gray-700 pr-5">
-              <button onClick={() => handleNavigation("TOPS")} className="hover:text-primary transition">
-                TOPS
+              <button onClick={() => handleNavigation("TOP")} className="hover:text-primary transition">
+                TOP
               </button>
-              <button onClick={() => handleNavigation("GAWON")} className="hover:text-primary transition">
-                GAWON
+              <button onClick={() => handleNavigation("GOWN")} className="hover:text-primary transition">
+                GOWN
               </button>
               <button onClick={() => handleNavigation("ROMPER")} className="hover:text-primary transition">
                 ROMPER
@@ -203,23 +203,23 @@ const Navbar = () => {
                 <li>
                   <button
                     onClick={() => {
-                      handleNavigation("TOPS");
+                      handleNavigation("TOP");
                       setShowSideNavbar(false);
                     }}
                     className="text-white text-sm font-medium hover:text-gray-300"
                   >
-                    TOPS
+                    TOP
                   </button>
                 </li>
                 <li>
                   <button
                     onClick={() => {
-                      handleNavigation("GAWON");
+                      handleNavigation("GOWN");
                       setShowSideNavbar(false);
                     }}
                     className="text-white text-sm font-medium hover:text-gray-300"
                   >
-                    GAWON
+                    GOWN
                   </button>
                 </li>
                 <li>
