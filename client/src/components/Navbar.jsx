@@ -135,11 +135,11 @@ const Navbar = () => {
             </a>
             
             <nav className="hidden lg:flex flex-1 justify-center gap-12 text-xl font-semibold text-gray-700 pr-5">
-              <button onClick={() => handleNavigation("TOPS")} className="hover:text-primary transition">
-                TOPS
+              <button onClick={() => handleNavigation("TOP")} className="hover:text-primary transition">
+                TOP
               </button>
-              <button onClick={() => handleNavigation("GAWON")} className="hover:text-primary transition">
-                GAWON
+              <button onClick={() => handleNavigation("GOWN")} className="hover:text-primary transition">
+                GOWN
               </button>
               <button onClick={() => handleNavigation("ROMPER")} className="hover:text-primary transition">
                 ROMPER
@@ -203,45 +203,45 @@ const Navbar = () => {
                 <li>
                   <button
                     onClick={() => {
-                      handleNavigation("TOPS & TEES");
+                      handleNavigation("TOP");
                       setShowSideNavbar(false);
                     }}
                     className="text-white text-sm font-medium hover:text-gray-300"
                   >
-                    TOPS & TEES
+                    TOP
                   </button>
                 </li>
                 <li>
                   <button
                     onClick={() => {
-                      handleNavigation("DRESSES");
+                      handleNavigation("GOWN");
                       setShowSideNavbar(false);
                     }}
                     className="text-white text-sm font-medium hover:text-gray-300"
                   >
-                    DRESSES
+                    GOWN
                   </button>
                 </li>
                 <li>
                   <button
                     onClick={() => {
-                      handleNavigation("BOTTOMS");
+                      handleNavigation("ROMPER");
                       setShowSideNavbar(false);
                     }}
                     className="text-white text-sm font-medium hover:text-gray-300"
                   >
-                    BOTTOMS
+                    ROMPER
                   </button>
                 </li>
                 <li>
                   <button
                     onClick={() => {
-                      handleNavigation("ETHNIC WEAR");
+                      handleNavigation("KNEE LENGTH");
                       setShowSideNavbar(false);
                     }}
                     className="text-white text-sm font-medium hover:text-gray-300"
                   >
-                    ETHNIC WEAR
+                    KNEE LENGTH
                   </button>
                 </li>
               </ul>
@@ -294,3 +294,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+

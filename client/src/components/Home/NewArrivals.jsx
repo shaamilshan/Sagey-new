@@ -16,10 +16,10 @@ import romper from '../../assets/ethnic.svg';
 import kneelength from '../../assets/kneelength.svg';
 
 const categories = [
-  { label: "TOPS", icon: top, category: "TOPS" },
-  { label: "GAWON", icon: dress, category: "GAWON" },
+  { label: "TOP", icon: top, category: "TOP" },
+  { label: "GOWN", icon: dress, category: "GOWN" },
   { label: "ROMPER", icon: romper, category: "ROMPER" },
-  { label: "KNEE LENGTH", icon: kneelength, category: "KNEELENGTH" },
+  { label: "KNEE LENGTH", icon: kneelength, category: "KNEE LENGTH" },
 ];
 
 // To enable looping when all items are visible, we duplicate the array.

@@ -25,7 +25,7 @@ const OurProducts = () => {
   }, [searchParams]);
 
   return (
-    <div className="bg-white py-10" data-aos="fade-up">
+    <div className="bg-white py-7" data-aos="fade-up">
       {/* Product Cards Section */}
       <div className="rounded-[30px] p-6 sm:p-10 max-w-7xl mx-auto">
         <div>
