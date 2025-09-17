@@ -320,6 +320,12 @@ const OrderDetail = () => {
                         <p className="cart-total-li-first">Tax</p>
                         <p className="cart-total-li-second">{orderData.tax}₹</p>
                       </div>
+                      {orderData.codFee > 0 && (
+                        <div className="cart-total-li">
+                          <p className="cart-total-li-first">COD Fee</p>
+                          <p className="cart-total-li-second">{orderData.codFee}₹</p>
+                        </div>
+                      )}
                     </div>
                     <div className="cart-total-li">
                       <p className="font-semibold text-gray-500">Total</p>

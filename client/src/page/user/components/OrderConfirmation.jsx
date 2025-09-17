@@ -27,7 +27,7 @@ const OrderConfirmation = () => {
           <div className="py-3 border-b">
             <h3 className="text-lg font-semibold mb-2">Order Details</h3>
             <p>Order ID: {orderData.orderId}</p>
-            <p>Order Total: {orderData.totalPrice}</p>
+            <p>Order Total: {orderData.totalPrice}₹</p>
             <p>
               <Link
                 to={`/dashboard/order-history/detail/${

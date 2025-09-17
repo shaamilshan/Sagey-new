@@ -7,7 +7,7 @@ const TotalAndSubTotal = () => {
 
   // const { totalPrice, shipping, discount, tax, couponType, couponCode } =
   //   useSelector((state) => state.cart);
-  const { totalPrice, shipping, discount, couponType, couponCode } =
+  const { totalPrice, shipping, discount, couponType, couponCode, codFee } =
     useSelector((state) => state.cart);
 
   // Set tax to 0
@@ -21,7 +21,7 @@ const TotalAndSubTotal = () => {
     offer = discount;
   }
 
-  const finalTotal = totalPrice + shipping + parseInt(tax) - offer;
+  const finalTotal = totalPrice + shipping + parseInt(tax) - offer + (codFee || 0);
 
   return (
     <>
@@ -51,6 +51,13 @@ const TotalAndSubTotal = () => {
               : "0₹"}
           </p>
         </div>
+        
+        {codFee > 0 && (
+          <div className="cart-total-li">
+            <p className="cart-total-li-first">COD Fee</p>
+            <p className="cart-total-li-second">{codFee}₹</p>
+          </div>
+        )}
 
         {couponCode !== "" && (
           <>

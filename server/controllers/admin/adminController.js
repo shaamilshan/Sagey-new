@@ -52,7 +52,6 @@ const getAdmins = async (req, res) => {
         password: 0,
         dateOfBirth: 0,
         role: 0,
-        walletBalance: 0,
         isVerified: 0,
       }
     )

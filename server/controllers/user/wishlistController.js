@@ -137,7 +137,7 @@ const deleteOneProductFromWishlist = async (req, res) => {
     const wishlist = await Wishlist.findOne({ user: _id });
 
     if (!wishlist) {
-      throw Error("Couldn't find the wallet");
+      throw Error("Couldn't find the wishlist");
     }
 
     const product = await Products.findOne({ _id: productId });

@@ -34,7 +34,7 @@ const paymentSchema = new Schema(
     paymentMode: {
       type: String,
       required: true,
-      enum: ["cashOnDelivery", "razorPay", "myWallet"],
+      enum: ["cashOnDelivery", "razorPay"],
     },
   },
   { timestamps: true }

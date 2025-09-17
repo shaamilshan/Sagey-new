@@ -11,7 +11,7 @@ import AddressCheckoutSession from "./components/AddressCheckoutSession";
 import TotalAndSubTotal from "./components/TotalAndSubTotal";
 import Loading from "../../components/Loading";
 import OrderConfirmation from "./components/OrderConfirmation";
-import { clearCartOnOrderPlaced } from "../../redux/reducers/user/cartSlice";
+import { clearCartOnOrderPlaced, setCodFee } from "../../redux/reducers/user/cartSlice";
 import CheckoutPaymentOption from "./components/CheckoutPaymentOption";
 
 const Checkout = () => {
@@ -20,7 +20,7 @@ const Checkout = () => {
 
   // Cart from Redux
   const { cart, loading, error } = useSelector((state) => state.cart);
-  const { totalPrice, shipping, discount, tax, couponType } = useSelector(
+  const { totalPrice, shipping, discount, tax, couponType, codFee } = useSelector(
     (state) => state.cart
   );
 
@@ -32,17 +32,22 @@ const Checkout = () => {
     offer = discount;
   }
 
-  const finalTotal = totalPrice + shipping + tax - offer;
-
-  // Wallet balance
-  const [walletBalance, setWalletBalance] = useState(0);
+  const finalTotal = totalPrice + shipping + tax - offer + codFee;
 
   // Address Selection
   const [selectedAddress, setSelectedAddress] = useState("");
   // Payment Selection
   const [selectedPayment, setSelectedPayment] = useState(null);
   const handleSelectedPayment = (e) => {
-    setSelectedPayment(e.target.value);
+    const paymentMethod = e.target.value;
+    setSelectedPayment(paymentMethod);
+    
+    // Set COD fee based on payment method
+    if (paymentMethod === "cashOnDelivery") {
+      dispatch(setCodFee(200));
+    } else {
+      dispatch(setCodFee(0));
+    }
   };
   // Additional Note
   const [additionalNotes, setAdditionalNotes] = useState("");
@@ -59,7 +64,7 @@ const Checkout = () => {
     }
   };
 
-  // Cash on delivery or wallet balance
+  // Cash on delivery
   const saveOrderOnCashDeliveryOrMyWallet = async (response) => {
     setOrderPlacedLoading(true);
 
@@ -209,24 +214,12 @@ const Checkout = () => {
       return;
     }
 
-    if (selectedPayment === "myWallet") {
-      let entireTotal =
-        Number(totalPrice) + Number(discount) + Number(tax) - Number(offer);
-      if (walletBalance < entireTotal) {
-        toast.error("Not balance in your wallet");
-        return;
-      }
-    }
-
     if (selectedPayment === "razorPay") {
       initiateRazorPayPayment();
       return;
     }
 
-    if (
-      selectedPayment === "cashOnDelivery" ||
-      selectedPayment === "myWallet"
-    ) {
+    if (selectedPayment === "cashOnDelivery") {
       saveOrderOnCashDeliveryOrMyWallet();
     }
   };
@@ -255,8 +248,6 @@ const Checkout = () => {
               <CheckoutPaymentOption
                 handleSelectedPayment={handleSelectedPayment}
                 selectedPayment={selectedPayment}
-                walletBalance={walletBalance}
-                setWalletBalance={setWalletBalance}
               />
             </div>
 

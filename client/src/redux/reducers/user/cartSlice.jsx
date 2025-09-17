@@ -24,6 +24,7 @@ const cartSlice = createSlice({
     couponType: "",
     couponCode: "",
     countLoading: false,
+    codFee: 0,
   },
   reducers: {
     calculateTotalPrice: (state) => {
@@ -47,6 +48,10 @@ const cartSlice = createSlice({
       state.discount = 0;
       state.couponType = "";
       state.couponCode = "";
+      state.codFee = 0;
+    },
+    setCodFee: (state, action) => {
+      state.codFee = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -185,6 +190,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const { calculateTotalPrice, clearCartOnOrderPlaced } =
+export const { calculateTotalPrice, clearCartOnOrderPlaced, setCodFee } =
   cartSlice.actions;
 export default cartSlice.reducer;

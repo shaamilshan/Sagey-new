@@ -17,7 +17,6 @@ import userProductsReducer from "./reducers/user/userProductSlice";
 import userOrderReducer from "./reducers/user/userOrdersSLice";
 import cartReducer from "./reducers/user/cartSlice";
 import addressReducer from "./reducers/user/addressSlice";
-import walletReducer from "./reducers/user/walletSlice";
 import wishlistReducer from "./reducers/user/wishlistSlice";
 import reviewReducer from "./reducers/user/reviewSlice";
 import buyNowReducer from "./reducers/user/buyNowSlice";
@@ -32,7 +31,6 @@ export const store = configureStore({
     userOrders: userOrderReducer,
     cart: cartReducer,
     address: addressReducer,
-    wallet: walletReducer,
     wishlist: wishlistReducer,
     reviews: reviewReducer,
     buyNow: buyNowReducer,

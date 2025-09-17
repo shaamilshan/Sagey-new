@@ -6,7 +6,6 @@ const Order = require("../../model/orderModel");
 const Products = require("../../model/productModel");
 const Payment = require("../../model/paymentModel");
 const uuid = require("uuid");
-const Wallet = require("../../model/walletModel");
 const Coupon = require("../../model/couponModel");
 const { generateInvoicePDF } = require("../Common/invoicePDFGenFunctions");
 const Counter = require("../../model/counterModel");
@@ -159,7 +158,7 @@ const createOrder = async (req, res) => {
     }
 
     // Validate payment mode
-    const validPaymentModes = ["cashOnDelivery", "razorPay", "myWallet"];
+    const validPaymentModes = ["cashOnDelivery", "razorPay"];
     if (!validPaymentModes.includes(paymentMode)) {
       return res.status(400).json({ error: "Invalid payment mode" });
     }
@@ -199,6 +198,12 @@ const createOrder = async (req, res) => {
 
     let sum = 0;
     let totalQuantity = 0;
+    let codFee = 0;
+
+    // Set COD fee if payment mode is cash on delivery
+    if (paymentMode === "cashOnDelivery") {
+      codFee = 200;
+    }
 
     // Calculate the total sum and quantity
     cart.items.forEach((item) => {
@@ -207,7 +212,7 @@ const createOrder = async (req, res) => {
       totalQuantity = totalQuantity + item.quantity;
     });
 
-    let sumWithTax = sum; // No tax
+    let sumWithTax = sum + codFee; // Add COD fee to total
     if (cart.discount && cart.type === "percentage") {
       const discountAmount = (sum * cart.discount) / 100;
       sumWithTax -= discountAmount;
@@ -248,18 +253,8 @@ const createOrder = async (req, res) => {
       ...(cart.couponCode ? { couponCode: cart.couponCode } : {}),
       ...(cart.discount ? { discount: cart.discount } : {}),
       ...(cart.type ? { couponType: cart.type } : {}),
+      codFee: codFee,
     };
-
-    // Check wallet balance if payment mode is myWallet
-    if (paymentMode === "myWallet") {
-      const wallet = await Wallet.findOne({ user: _id });
-      if (!wallet) {
-        return res.status(400).json({ error: "Wallet not found" });
-      }
-      if (wallet.balance < sumWithTax) {
-        return res.status(400).json({ error: "Insufficient wallet balance" });
-      }
-    }
 
     // Update product quantities first
     const updateProductPromises = products.map((item) => {
@@ -273,52 +268,6 @@ const createOrder = async (req, res) => {
 
     if (order) {
       await Cart.findByIdAndDelete(cart._id);
-    }
-
-    // When payment is done using wallet, reducing wallet balance and creating payment
-    if (paymentMode === "myWallet") {
-      let counter = await Counter.findOne({
-        model: "Wallet",
-        field: "transaction_id",
-      });
-
-      // Checking if order counter already exists
-      if (counter) {
-        counter.count += 1;
-        await counter.save();
-      } else {
-        counter = await Counter.create({
-          model: "Wallet",
-          field: "transaction_id",
-        });
-      }
-
-      const exists = await Wallet.findOne({ user: _id });
-      if (!exists) {
-        throw Error("No Wallet found");
-      }
-
-      await Payment.create({
-        order: order._id,
-        payment_id: `wallet_${uuid.v4()}`,
-        user: _id,
-        status: "success",
-        paymentMode: "myWallet",
-      });
-
-      // Deduct balance from wallet
-      await Wallet.findByIdAndUpdate(exists._id, {
-        $inc: { balance: -sumWithTax },
-        $push: {
-          transactions: {
-            transaction_id: counter.count + 1,
-            amount: sumWithTax,
-            type: "debit",
-            description: "Product Ordered",
-            order: order._id,
-          },
-        },
-      });
     }
 
     // Update coupon usage
@@ -482,55 +431,6 @@ const cancelOrder = async (req, res) => {
           },
         }
       );
-
-      let counter = await Counter.findOne({
-        model: "Wallet",
-        field: "transaction_id",
-      });
-
-      // Checking if order counter already exist
-      if (counter) {
-        counter.count += 1;
-        await counter.save();
-      } else {
-        counter = await Counter.create({
-          model: "Wallet",
-          field: "transaction_id",
-        });
-      }
-
-      let wallet = {};
-      const exists = await Wallet.findOne({ user: _id });
-      if (exists) {
-        wallet = await Wallet.findByIdAndUpdate(exists._id, {
-          $inc: {
-            balance: order.totalPrice,
-          },
-          $push: {
-            transactions: {
-              transaction_id: counter.count + 1,
-              amount: order.totalPrice,
-              type: "credit",
-              description: "Order Cancellation Refund",
-              order: order._id,
-            },
-          },
-        });
-      } else {
-        wallet = await Wallet.create({
-          user: _id,
-          balance: order.totalPrice,
-          transactions: [
-            {
-              transaction_id: counter.count + 1,
-              amount: order.totalPrice,
-              type: "credit",
-              description: "Order Cancellation Refund",
-              order: order._id,
-            },
-          ],
-        });
-      }
     }
 
     res.status(200).json({ order });
@@ -677,8 +577,15 @@ const buyNow = async (req, res) => {
 
     const price = product.price || 0;
     const markup = product.markup || 0;
-    const sum = price + markup;
-    const sumWithTax = parseInt(sum);
+    let sum = (price + markup) * quantity;
+    let codFee = 0;
+
+    // Set COD fee if payment mode is cash on delivery
+    if (paymentMode === "cashOnDelivery") {
+      codFee = 200;
+    }
+
+    const sumWithTax = sum + codFee;
 
     // Address validation
     const addressData = await Address.findOne({ _id: address });
@@ -686,17 +593,6 @@ const buyNow = async (req, res) => {
       return res.status(404).json({ error: "Address not found" });
     }
     
-    // Check wallet balance if payment mode is myWallet
-    if (paymentMode === "myWallet") {
-      const wallet = await Wallet.findOne({ user: _id });
-      if (!wallet) {
-        return res.status(400).json({ error: "Wallet not found" });
-      }
-      if (wallet.balance < sumWithTax) {
-        return res.status(400).json({ error: "Insufficient wallet balance" });
-      }
-    }
-
     let products = [];
 
     products.push({
@@ -722,6 +618,7 @@ const buyNow = async (req, res) => {
           status: "pending",
         },
       ],
+      codFee: codFee,
       ...(notes ? { notes } : {}),
     };
 
@@ -729,56 +626,6 @@ const buyNow = async (req, res) => {
     await updateProductList(id, -quantity, new Map());
 
     const order = await Order.create(orderData);
-
-    // When payment is done using wallet reducing the wallet and creating payment
-    if (paymentMode === "myWallet") {
-      const exists = await Wallet.findOne({ user: _id });
-      if (!exists) {
-        throw Error("No Wallet where found");
-      }
-
-      await Payment.create({
-        order: order._id,
-        payment_id: `wallet_${uuid.v4()}`,
-        user: _id,
-        status: "success",
-        paymentMode: "myWallet",
-      });
-
-      let counter = await Counter.findOne({
-        model: "Wallet",
-        field: "transaction_id",
-      });
-
-      // Checking if order counter already exist
-      if (counter) {
-        counter.count += 1;
-        await counter.save();
-      } else {
-        counter = await Counter.create({
-          model: "Wallet",
-          field: "transaction_id",
-        });
-      }
-
-      let wallet = {};
-      if (exists) {
-        wallet = await Wallet.findByIdAndUpdate(exists._id, {
-          $inc: {
-            balance: -sumWithTax,
-          },
-          $push: {
-            transactions: {
-              transaction_id: counter.count + 1,
-              amount: sumWithTax,
-              type: "debit",
-              description: "Product Ordered",
-              order: order._id,
-            },
-          },
-        });
-      }
-    }
 
     res.status(200).json({ order });
   } catch (error) {

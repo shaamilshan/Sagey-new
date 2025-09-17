@@ -140,7 +140,21 @@ const generateInvoicePDF = async (order) => {
         order.tax
       );
 
-      const duePosition = paidToDatePosition + 30;
+      let codFeePosition = paidToDatePosition;
+      if (order.codFee && order.codFee > 0) {
+        codFeePosition = paidToDatePosition + 30;
+        generateTableRowNoLine(
+          doc,
+          codFeePosition,
+          "",
+          "",
+          "COD Fee",
+          "",
+          order.codFee
+        );
+      }
+
+      const duePosition = codFeePosition + 30;
       generateTableRowNoLine(
         doc,
         duePosition,

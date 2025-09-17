@@ -40,17 +40,23 @@ const BuyNow = () => {
     offer = discount;
   }
 
-  const finalTotal = totalPrice + shipping + tax - offer;
-
-  // Wallet balance
-  const [walletBalance, setWalletBalance] = useState(0);
+  const finalTotal = totalPrice + shipping + tax - offer + codFee;
 
   // Address Selection
   const [selectedAddress, setSelectedAddress] = useState("");
+  const [codFee, setCodFee] = useState(0);
   // Payment Selection
   const [selectedPayment, setSelectedPayment] = useState(null);
   const handleSelectedPayment = (e) => {
-    setSelectedPayment(e.target.value);
+    const paymentMethod = e.target.value;
+    setSelectedPayment(paymentMethod);
+    
+    // Set COD fee based on payment method
+    if (paymentMethod === "cashOnDelivery") {
+      setCodFee(200);
+    } else {
+      setCodFee(0);
+    }
   };
   // Additional Note
   const [additionalNotes, setAdditionalNotes] = useState("");
@@ -66,7 +72,7 @@ const BuyNow = () => {
     }
   };
 
-  // Cash on delivery or wallet balance
+  // Cash on delivery
   const saveOrderOnCashDeliveryOrMyWallet = async (response) => {
     setOrderPlacedLoading(true);
 
@@ -216,24 +222,12 @@ const BuyNow = () => {
       return;
     }
 
-    if (selectedPayment === "myWallet") {
-      let entireTotal =
-        Number(totalPrice) + Number(discount) + Number(tax) - Number(offer);
-      if (walletBalance < entireTotal) {
-        toast.error("Not balance in your wallet");
-        return;
-      }
-    }
-
     if (selectedPayment === "razorPay") {
       initiateRazorPayPayment();
       return;
     }
 
-    if (
-      selectedPayment === "cashOnDelivery" ||
-      selectedPayment === "myWallet"
-    ) {
+    if (selectedPayment === "cashOnDelivery") {
       saveOrderOnCashDeliveryOrMyWallet();
     }
   };
@@ -256,8 +250,6 @@ const BuyNow = () => {
               <CheckoutPaymentOption
                 handleSelectedPayment={handleSelectedPayment}
                 selectedPayment={selectedPayment}
-                walletBalance={walletBalance}
-                setWalletBalance={setWalletBalance}
               />
             </div>
 
@@ -306,6 +298,13 @@ const BuyNow = () => {
                       : "0₹"}
                   </p>
                 </div>
+                
+                {codFee > 0 && (
+                  <div className="cart-total-li">
+                    <p className="cart-total-li-first">COD Fee</p>
+                    <p className="cart-total-li-second">{codFee}₹</p>
+                  </div>
+                )}
 
                 {/*  {couponCode !== "" && (
                   <>

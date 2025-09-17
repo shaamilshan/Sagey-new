@@ -47,7 +47,6 @@ const {
   getPayments,
   clearPayments,
 } = require("../controllers/admin/paymentController");
-const { clearWallet } = require("../controllers/admin/walletController");
 const {
   getCoupons,
   getCoupon,
@@ -111,9 +110,6 @@ router.patch("/return-order-status/:id", updateReturnOrderStatus);
 // Payment controller function importing mounting
 router.get("/payments", getPayments);
 router.get("/clear-payments", clearPayments);
-
-// Clear Wallet for testing purpose
-router.get("/clear-wallet", clearWallet);
 
 // Coupon Controller functions mounting
 router.get("/coupons", getCoupons);

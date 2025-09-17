@@ -47,11 +47,6 @@ const {
 } = require("../controllers/user/paymentController");
 
 const {
-  getWallet,
-  getWalletTotal,
-} = require("../controllers/user/walletController");
-
-const {
   addToWishlist,
   deleteOneProductFromWishlist,
   deleteWishlist,
@@ -129,10 +124,6 @@ router.patch("/address/:id", updateAddress);
 router.post("/razor-order", createRazerPayOrder);
 router.post("/razor-verify", verifyPayment);
 router.get("/razor-key", getKey);
-
-// Wallet
-router.get("/wallet", getWallet);
-router.get("/wallet-total", getWalletTotal);
 
 // Wishlist
 router.get("/wishlist", getWishlist);

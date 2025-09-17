@@ -77,7 +77,4 @@ export const modifyPaymentModeText = (mode) => {
   if (mode === "razorPay") {
     return "Razor Pay";
   }
-  if (mode === "myWallet") {
-    return "My Wallet";
-  }
 };

@@ -24,7 +24,6 @@ import ProfilePage from "./page/user/ProfilePage";
 import OrderDetail from "./page/user/OrderDetails/OrderDetail";
 import ProfileDashboard from "./page/user/profileDashboard";
 import Dash from "./page/user/profileDashboard/pages/Dash";
-import Wallet from "./page/user/profileDashboard/pages/wallet";
 import Addresses from "./page/user/profileDashboard/pages/addresses";
 import TrackOrder from "./page/user/profileDashboard/pages/trackOrder";
 import WishList from "./page/user/profileDashboard/pages/wishlist";
@@ -156,7 +155,6 @@ function App() {
               <Route path="profile" element={<ProfilePage />} />
               <Route path="order-history" element={<OrderHistory />} />
               <Route path="order-history/detail/:id" element={<OrderDetail />} />
-              <Route path="wallet" element={<Wallet />} />
               <Route path="addresses" element={<Addresses />} />
               <Route path="track-order" element={<TrackOrder />} />
               <Route path="wishlist" element={<WishList />} />

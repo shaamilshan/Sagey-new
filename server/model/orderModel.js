@@ -160,7 +160,7 @@ const OrderSchema = new Schema(
     paymentMode: {
       type: String,
       required: true,
-      enum: ["cashOnDelivery", "razorPay", "myWallet"],
+      enum: ["cashOnDelivery", "razorPay"],
     },
     totalQuantity: {
       type: Number,
@@ -181,6 +181,10 @@ const OrderSchema = new Schema(
     },
     couponType: {
       type: String,
+    },
+    codFee: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }
