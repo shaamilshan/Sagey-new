@@ -197,9 +197,20 @@ const createOrder = async (req, res) => {
       }
     }
 
+    // Create products array from cart items (needed for shipping calculation)
+    const products = cart.items.map((item) => ({
+      productId: item.product._id,
+      quantity: item.quantity,
+      totalPrice: (item.product.price || 0) * item.quantity,
+      price: item.product.price || 0,
+      markup: item.product.markup || 0, // Ensure markup is always a number
+      attributes: item.attributes || new Map(), // Ensure attributes is always defined
+    }));
+
     // Calculate shipping charges using Delhivery
     let shippingCharges = 0;
     let delhiveryData = {};
+    let codFee = 0; // Initialize COD fee here
     
     console.log('📦 Starting shipping rate calculation...');
     console.log('Payment Mode:', paymentMode);
@@ -267,7 +278,6 @@ const createOrder = async (req, res) => {
     // Calculate the total sum and quantity
     let sum = 0;
     let totalQuantity = 0;
-    let codFee = 0;
 
     // Set COD fee if payment mode is cash on delivery
     if (paymentMode === "cashOnDelivery") {
@@ -293,15 +303,6 @@ const createOrder = async (req, res) => {
     if (sumWithTax < 0) {
       sumWithTax = 0;
     }
-
-    const products = cart.items.map((item) => ({
-      productId: item.product._id,
-      quantity: item.quantity,
-      totalPrice: (item.product.price || 0) * item.quantity,
-      price: item.product.price || 0,
-      markup: item.product.markup || 0, // Ensure markup is always a number
-      attributes: item.attributes || new Map(), // Ensure attributes is always defined
-    }));
 
     let orderData = {
       user: _id,
