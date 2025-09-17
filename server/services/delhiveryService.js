@@ -21,6 +21,20 @@ class DelhiveryService {
     return this.useStaging ? this.stagingURL : this.baseURL;
   }
 
+  // Get detailed error message with specific handling
+  getDetailedErrorMessage(errorMessage) {
+    if (errorMessage.includes('ClientWarehouse matching query does not exist')) {
+      return `Pickup location "${this.pickupLocation.name}" not found in Delhivery account. Please contact Delhivery to add this warehouse.`;
+    } else if (errorMessage.includes('suspicious order')) {
+      return 'Order flagged as suspicious. This is common with test data. Real orders should work fine.';
+    } else if (errorMessage.includes('insufficient balance')) {
+      return 'Insufficient balance in Delhivery account. Please add funds to your Delhivery wallet or contact Delhivery support.';
+    } else if (errorMessage.includes('Prepaid client manifest charge API failed')) {
+      return 'Account balance or billing issue. Please check your Delhivery account balance and billing setup, or contact Delhivery support.';
+    }
+    return errorMessage;
+  }
+
   // Check if pincode is serviceable
   async checkPincodeServiceability(pincode) {
     try {
@@ -198,7 +212,7 @@ class DelhiveryService {
 
       return {
         success: false,
-        error: response.data?.rmk || 'Failed to create shipment'
+        error: this.getDetailedErrorMessage(response.data?.rmk || 'Failed to create shipment')
       };
     } catch (error) {
       console.error('Error creating shipment:', error.message);
