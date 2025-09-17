@@ -13,6 +13,7 @@ import Loading from "../../components/Loading";
 import OrderConfirmation from "./components/OrderConfirmation";
 import { clearCartOnOrderPlaced, setCodFee } from "../../redux/reducers/user/cartSlice";
 import CheckoutPaymentOption from "./components/CheckoutPaymentOption";
+import ShippingCalculator from "./components/ShippingCalculator";
 
 const Checkout = () => {
   const dispatch = useDispatch();
@@ -24,6 +25,24 @@ const Checkout = () => {
     (state) => state.cart
   );
 
+  // Address Selection
+  const [selectedAddress, setSelectedAddress] = useState("");
+  // Payment Selection
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  // Shipping information
+  const [shippingInfo, setShippingInfo] = useState({
+    method: 'surface',
+    rate: 0,
+    codCharges: 0,
+    deliveryDays: '3-5',
+    totalShipping: 0
+  });
+  // Additional Note
+  const [additionalNotes, setAdditionalNotes] = useState("");
+  // Page switching
+  const [orderPlacedLoading, setOrderPlacedLoading] = useState(false);
+  const [orderData, setOrderData] = useState(false);
+
   let offer = 0;
 
   if (couponType === "percentage") {
@@ -32,32 +51,30 @@ const Checkout = () => {
     offer = discount;
   }
 
-  const finalTotal = totalPrice + shipping + tax - offer + codFee;
-
-  // Address Selection
-  const [selectedAddress, setSelectedAddress] = useState("");
-  // Payment Selection
-  const [selectedPayment, setSelectedPayment] = useState(null);
+  const finalTotal = totalPrice + (shipping || shippingInfo.totalShipping) + tax - offer + codFee;
   const handleSelectedPayment = (e) => {
     const paymentMethod = e.target.value;
     setSelectedPayment(paymentMethod);
     
     // Set COD fee based on payment method
     if (paymentMethod === "cashOnDelivery") {
-      dispatch(setCodFee(200));
+      dispatch(setCodFee(200 + shippingInfo.codCharges)); // COD fee + shipping COD charges
     } else {
       dispatch(setCodFee(0));
     }
   };
-  // Additional Note
-  const [additionalNotes, setAdditionalNotes] = useState("");
-
-  // Page switching
-  const [orderPlacedLoading, setOrderPlacedLoading] = useState(false);
-  const [orderData, setOrderData] = useState(false);
+  
+  // Handle shipping update
+  const handleShippingUpdate = (shippingData) => {
+    setShippingInfo(shippingData);
+    
+    // Update COD fee if payment method is COD
+    if (selectedPayment === "cashOnDelivery") {
+      dispatch(setCodFee(200 + shippingData.codCharges));
+    }
+  };
 
   // Navigate to order-confirmation
-
   const navigateToOrderConfirmation = (orderD) => {
     if (orderD) {
       navigate("/order-confirmation", { state: orderD });
@@ -241,6 +258,11 @@ const Checkout = () => {
               selectedAddress={selectedAddress}
               setSelectedAddress={setSelectedAddress}
             />
+            
+            <ShippingCalculator
+              selectedAddress={selectedAddress}
+              onShippingUpdate={handleShippingUpdate}
+            />
             <div className="bg-white my-5 p-5 rounded">
               <h1 className="text-xl font-semibold border-b pb-2 mb-3">
                 Payment Option
@@ -272,7 +294,7 @@ const Checkout = () => {
                   <CheckoutCartRow item={item} key={index} />
                 ))}
             </div>
-            <TotalAndSubTotal />
+            <TotalAndSubTotal shippingInfo={shippingInfo} />
             <button
               className="btn-primary w-full text-white uppercase font-semibold text-sm my-5"
               onClick={placeOrder}

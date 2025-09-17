@@ -11,6 +11,7 @@ const { generateInvoicePDF } = require("../Common/invoicePDFGenFunctions");
 const Counter = require("../../model/counterModel");
 const { sendOrderNotification } = require("../../util/mailSender");
 const User = require('../../model/userModel');  // Ensure the relative path is correct
+const delhiveryService = require('../../services/delhiveryService');
 // const managerOrderModel = require("../../model/managerOrderModel");
 
 // // Just the function increment or decrement product count
@@ -196,6 +197,56 @@ const createOrder = async (req, res) => {
       }
     }
 
+    // Calculate shipping charges using Delhivery
+    let shippingCharges = 0;
+    let delhiveryData = {};
+    
+    try {
+      // Calculate weight based on products (assuming 0.5kg per item if not specified)
+      const totalWeight = products.reduce((weight, item) => {
+        return weight + (item.quantity * 0.5); // 0.5kg per item
+      }, 0);
+      
+      // Get shipping rates from Delhivery
+      const shippingRates = await delhiveryService.calculateShippingRate(
+        process.env.PICKUP_PINCODE || '400001',
+        addressData.pinCode.toString(),
+        totalWeight,
+        paymentMode === 'cashOnDelivery'
+      );
+      
+      // Use surface shipping by default
+      shippingCharges = shippingRates.surface.rate + shippingRates.surface.fuel_surcharge;
+      
+      // Prepare Delhivery data for order
+      delhiveryData = {
+        shippingMethod: 'Surface',
+        expectedDeliveryDays: shippingRates.surface.delivery_days,
+        actualWeight: totalWeight * 1000, // Convert to grams
+        shippingCharges: shippingCharges,
+        codCharges: shippingRates.surface.cod_charges,
+        fuelSurcharge: shippingRates.surface.fuel_surcharge,
+      };
+      
+      // Add COD charges to total if COD payment
+      if (paymentMode === 'cashOnDelivery') {
+        codFee += shippingRates.surface.cod_charges;
+      }
+    } catch (shippingError) {
+      console.error('Error calculating shipping charges:', shippingError.message);
+      // Use fallback shipping charges
+      shippingCharges = 50;
+      delhiveryData = {
+        shippingMethod: 'Surface',
+        expectedDeliveryDays: '3-5',
+        actualWeight: 500, // Default 500 grams
+        shippingCharges: shippingCharges,
+        codCharges: paymentMode === 'cashOnDelivery' ? 40 : 0,
+        fuelSurcharge: 10,
+      };
+    }
+
+    // Calculate the total sum and quantity
     let sum = 0;
     let totalQuantity = 0;
     let codFee = 0;
@@ -204,15 +255,15 @@ const createOrder = async (req, res) => {
     if (paymentMode === "cashOnDelivery") {
       codFee = 200;
     }
-
-    // Calculate the total sum and quantity
+    
     cart.items.forEach((item) => {
       const itemPrice = item.product.price || 0;
       sum = sum + itemPrice * item.quantity;
       totalQuantity = totalQuantity + item.quantity;
     });
 
-    let sumWithTax = sum + codFee; // Add COD fee to total
+    // Add shipping charges to total
+    let sumWithTax = sum + shippingCharges + codFee; // Add shipping and COD fee to total
     if (cart.discount && cart.type === "percentage") {
       const discountAmount = (sum * cart.discount) / 100;
       sumWithTax -= discountAmount;
@@ -239,6 +290,7 @@ const createOrder = async (req, res) => {
       address: addressData,
       products: products,
       subTotal: sum,
+      shipping: shippingCharges, // Add shipping charges
       tax: 0, // No tax
       totalPrice: sumWithTax,
       paymentMode,
@@ -254,6 +306,7 @@ const createOrder = async (req, res) => {
       ...(cart.discount ? { discount: cart.discount } : {}),
       ...(cart.type ? { couponType: cart.type } : {}),
       codFee: codFee,
+      delhivery: delhiveryData, // Add Delhivery data
     };
 
     // Update product quantities first
@@ -268,6 +321,38 @@ const createOrder = async (req, res) => {
 
     if (order) {
       await Cart.findByIdAndDelete(cart._id);
+      
+      // Create Delhivery shipment (non-blocking)
+      try {
+        const shipmentData = {
+          orderId: order.orderId || order._id,
+          address: addressData,
+          products: products,
+          paymentMode: paymentMode,
+          totalPrice: sumWithTax,
+          totalQuantity: totalQuantity,
+          weight: delhiveryData.actualWeight || 500
+        };
+        
+        const shipmentResult = await delhiveryService.createShipment(shipmentData);
+        
+        if (shipmentResult.success) {
+          // Update order with Delhivery details
+          await Order.findByIdAndUpdate(order._id, {
+            'delhivery.waybill': shipmentResult.waybill,
+            'delhivery.packageId': shipmentResult.package_id,
+            'delhivery.shipmentStatus': 'Manifested',
+            'delhivery.trackingUrl': `https://track.delhivery.com/track/package/${shipmentResult.waybill}`,
+          });
+          
+          console.log(`Delhivery shipment created for order ${order.orderId}: ${shipmentResult.waybill}`);
+        } else {
+          console.error(`Failed to create Delhivery shipment for order ${order.orderId}:`, shipmentResult.error);
+        }
+      } catch (shipmentError) {
+        console.error('Error creating Delhivery shipment:', shipmentError.message);
+        // Don't throw error - order should still succeed even if shipment creation fails
+      }
     }
 
     // Update coupon usage

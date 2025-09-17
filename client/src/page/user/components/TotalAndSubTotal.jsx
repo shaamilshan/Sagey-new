@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { removeCoupon } from "../../../redux/actions/user/cartActions";
 
-const TotalAndSubTotal = () => {
+const TotalAndSubTotal = ({ shippingInfo = null }) => {
   const dispatch = useDispatch();
 
   // const { totalPrice, shipping, discount, tax, couponType, couponCode } =
@@ -13,6 +13,9 @@ const TotalAndSubTotal = () => {
   // Set tax to 0
   const tax = 0;
 
+  // Use shipping info from props if available, otherwise use from Redux
+  const actualShipping = shippingInfo ? shippingInfo.totalShipping : shipping;
+
   let offer = 0;
 
   if (couponType === "percentage") {
@@ -21,7 +24,7 @@ const TotalAndSubTotal = () => {
     offer = discount;
   }
 
-  const finalTotal = totalPrice + shipping + parseInt(tax) - offer + (codFee || 0);
+  const finalTotal = totalPrice + actualShipping + parseInt(tax) - offer + (codFee || 0);
 
   return (
     <>
@@ -33,7 +36,12 @@ const TotalAndSubTotal = () => {
         <div className="cart-total-li">
           <p className="cart-total-li-first">Shipping</p>
           <p className="cart-total-li-second">
-            {shipping === 0 ? "Free" : shipping}
+            {actualShipping === 0 ? "Free" : `₹${actualShipping}`}
+            {shippingInfo && shippingInfo.deliveryDays && (
+              <span className="text-xs text-gray-500 block">
+                {shippingInfo.deliveryDays} days
+              </span>
+            )}
           </p>
         </div>
         <div className="cart-total-li">

@@ -68,6 +68,13 @@ const {
   readOrderReview,
 } = require("../controllers/user/reviewController");
 const { getCategories } = require("../controllers/user/categoryController");
+const {
+  checkPincodeServiceability,
+  calculateShippingRates,
+  trackShipment,
+  getPickupLocations,
+  cancelShipment
+} = require("../controllers/user/shippingController");
 
 const router = express.Router();
 
@@ -147,5 +154,12 @@ router.get("/order-review/:id", readOrderReview);
 
 // Category
 router.get("/categories", getCategories);
+
+// Delhivery Shipping
+router.get("/shipping/pincode/:pincode", checkPincodeServiceability);
+router.post("/shipping/calculate-rates", calculateShippingRates);
+router.get("/shipping/track/:waybill", trackShipment);
+router.get("/shipping/pickup-locations", getPickupLocations);
+router.post("/shipping/cancel/:waybill", cancelShipment);
 
 module.exports = router;

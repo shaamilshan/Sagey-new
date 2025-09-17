@@ -186,6 +186,61 @@ const OrderSchema = new Schema(
       type: Number,
       default: 0,
     },
+    // Delhivery shipping fields
+    delhivery: {
+      waybill: {
+        type: String,
+      },
+      packageId: {
+        type: String,
+      },
+      trackingUrl: {
+        type: String,
+      },
+      shippingMethod: {
+        type: String,
+        enum: ['Surface', 'Express'],
+        default: 'Surface',
+      },
+      expectedDeliveryDays: {
+        type: String,
+        default: '3-5',
+      },
+      actualWeight: {
+        type: Number, // in grams
+      },
+      chargedWeight: {
+        type: Number, // in grams
+      },
+      shippingCharges: {
+        type: Number,
+        default: 0,
+      },
+      codCharges: {
+        type: Number,
+        default: 0,
+      },
+      fuelSurcharge: {
+        type: Number,
+        default: 0,
+      },
+      shipmentStatus: {
+        type: String,
+        enum: ['Manifested', 'Dispatched', 'In-Transit', 'Delivered', 'RTO', 'Cancelled'],
+      },
+      trackingHistory: [{
+        status: String,
+        location: String,
+        timestamp: Date,
+        remarks: String,
+      }],
+      pickupDate: {
+        type: Date,
+      },
+      deliveredDate: {
+        type: Date,
+      },
+    },
   },
   { timestamps: true }
 );
