@@ -201,11 +201,17 @@ const createOrder = async (req, res) => {
     let shippingCharges = 0;
     let delhiveryData = {};
     
+    console.log('📦 Starting shipping rate calculation...');
+    console.log('Payment Mode:', paymentMode);
+    console.log('Destination Pincode:', addressData.pinCode);
+    
     try {
       // Calculate weight based on products (assuming 0.5kg per item if not specified)
       const totalWeight = products.reduce((weight, item) => {
         return weight + (item.quantity * 0.5); // 0.5kg per item
       }, 0);
+      
+      console.log('Total Weight:', totalWeight, 'kg');
       
       // Get shipping rates from Delhivery
       const shippingRates = await delhiveryService.calculateShippingRate(
@@ -214,6 +220,8 @@ const createOrder = async (req, res) => {
         totalWeight,
         paymentMode === 'cashOnDelivery'
       );
+      
+      console.log('💰 Shipping rates received:', JSON.stringify(shippingRates, null, 2));
       
       // Use surface shipping by default
       shippingCharges = shippingRates.surface.rate + shippingRates.surface.fuel_surcharge;
@@ -228,14 +236,17 @@ const createOrder = async (req, res) => {
         fuelSurcharge: shippingRates.surface.fuel_surcharge,
       };
       
+      console.log('🚚 Delhivery data prepared:', JSON.stringify(delhiveryData, null, 2));
+      
       // Add COD charges to total if COD payment
       if (paymentMode === 'cashOnDelivery') {
         codFee += shippingRates.surface.cod_charges;
+        console.log('💵 Added COD charges:', shippingRates.surface.cod_charges);
       }
     } catch (shippingError) {
-      console.error('Error calculating shipping charges:', shippingError.message);
+      console.error('❌ Shipping rate calculation failed:', shippingError.message);
       // Use fallback shipping charges
-      shippingCharges = 50;
+      shippingCharges = 50; // Default shipping charge
       delhiveryData = {
         shippingMethod: 'Surface',
         expectedDeliveryDays: '3-5',
@@ -243,7 +254,14 @@ const createOrder = async (req, res) => {
         shippingCharges: shippingCharges,
         codCharges: paymentMode === 'cashOnDelivery' ? 40 : 0,
         fuelSurcharge: 10,
+        integrationError: shippingError.message
       };
+      
+      if (paymentMode === 'cashOnDelivery') {
+        codFee += 40; // Default COD charges
+      }
+      
+      console.log('🔄 Using fallback shipping data:', JSON.stringify(delhiveryData, null, 2));
     }
 
     // Calculate the total sum and quantity
@@ -322,6 +340,11 @@ const createOrder = async (req, res) => {
     if (order) {
       await Cart.findByIdAndDelete(cart._id);
       
+      console.log('🚚 Order created successfully, starting Delhivery integration...');
+      console.log('Order ID:', order.orderId || order._id);
+      console.log('Payment Mode:', paymentMode);
+      console.log('Address Data:', JSON.stringify(addressData, null, 2));
+      
       // Create Delhivery shipment (non-blocking)
       try {
         const shipmentData = {
@@ -334,23 +357,43 @@ const createOrder = async (req, res) => {
           weight: delhiveryData.actualWeight || 500
         };
         
+        console.log('🔄 Attempting to create Delhivery shipment...');
+        console.log('Shipment Data:', JSON.stringify(shipmentData, null, 2));
+        
         const shipmentResult = await delhiveryService.createShipment(shipmentData);
+        
+        console.log('📦 Delhivery shipment result:', JSON.stringify(shipmentResult, null, 2));
         
         if (shipmentResult.success) {
           // Update order with Delhivery details
-          await Order.findByIdAndUpdate(order._id, {
+          const updateResult = await Order.findByIdAndUpdate(order._id, {
             'delhivery.waybill': shipmentResult.waybill,
             'delhivery.packageId': shipmentResult.package_id,
             'delhivery.shipmentStatus': 'Manifested',
             'delhivery.trackingUrl': `https://track.delhivery.com/track/package/${shipmentResult.waybill}`,
           });
           
-          console.log(`Delhivery shipment created for order ${order.orderId}: ${shipmentResult.waybill}`);
+          console.log(`✅ Delhivery shipment created for order ${order.orderId}: ${shipmentResult.waybill}`);
+          console.log('Order updated with Delhivery data:', updateResult ? 'Success' : 'Failed');
         } else {
-          console.error(`Failed to create Delhivery shipment for order ${order.orderId}:`, shipmentResult.error);
+          console.error(`❌ Failed to create Delhivery shipment for order ${order.orderId}:`, shipmentResult.error);
+          
+          // Still update order with error info for debugging
+          await Order.findByIdAndUpdate(order._id, {
+            'delhivery.integrationError': shipmentResult.error,
+            'delhivery.lastAttempt': new Date()
+          });
         }
       } catch (shipmentError) {
-        console.error('Error creating Delhivery shipment:', shipmentError.message);
+        console.error('💥 Exception in Delhivery shipment creation:', shipmentError.message);
+        console.error('Stack trace:', shipmentError.stack);
+        
+        // Update order with error info
+        await Order.findByIdAndUpdate(order._id, {
+          'delhivery.integrationError': shipmentError.message,
+          'delhivery.lastAttempt': new Date()
+        });
+        
         // Don't throw error - order should still succeed even if shipment creation fails
       }
     }
