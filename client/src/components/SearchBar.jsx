@@ -7,7 +7,7 @@ import { getSearchSuggestions } from "../redux/actions/user/searchSuggestionsAct
 import { clearSuggestions, hideSuggestions, showSuggestions } from "../redux/reducers/user/searchSuggestionsSlice";
 
 
-const SearchBar = ({ handleClick, search, setSearch, placeholder, label }) => {
+const SearchBar = ({ handleClick, search, setSearch, placeholder, label, liveFilter = true }) => {
   const dispatch = useDispatch();
   const { suggestions, isVisible, loading } = useSelector((state) => state.searchSuggestions);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -34,7 +34,9 @@ const SearchBar = ({ handleClick, search, setSearch, placeholder, label }) => {
   const handleInputChange = (e) => {
     const value = e.target.value;
     setSearch(value);
-    handleClick("search", value);
+    if (liveFilter) {
+      handleClick("search", value);
+    }
     setActiveIndex(-1);
     debouncedSearch(value);
   };

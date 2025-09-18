@@ -154,6 +154,7 @@ const Navbar = () => {
                 handleClick={handleClick}
                 search={search}
                 setSearch={setSearch}
+                liveFilter={false}
               />
             </div>
           </div>
