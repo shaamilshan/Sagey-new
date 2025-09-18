@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserProducts } from "@/redux/actions/user/userProductActions";
+import { addToWishlist, deleteOneProductFromWishlist } from "@/redux/actions/user/wishlistActions";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import JustLoading from "../JustLoading";
 import ProductCard2 from "../Cards/ProductCard2";
@@ -18,11 +19,21 @@ const OurProducts = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { userProducts, loading } = useSelector((state) => state.userProducts);
+  const wishlist = useSelector((state) => state.wishlist.wishlist || []);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(getUserProducts(searchParams));
   }, [searchParams]);
+
+  const handleToggleWishlist = (product) => {
+    const isAlreadyWishlisted = wishlist.some((item) => item.product._id === product._id);
+    if (isAlreadyWishlisted) {
+      dispatch(deleteOneProductFromWishlist(product._id));
+    } else {
+      dispatch(addToWishlist({ product: product._id }));
+    }
+  };
 
   return (
     <div className="bg-white py-7" data-aos="fade-up">
@@ -44,8 +55,12 @@ const OurProducts = () => {
               shuffleArray(userProducts)
                 .slice(0, 12)
                 .map((product, index) => (
-                  // The wrapping div has been removed. key is now on ProductCard2
-                  <ProductCard2 key={index} product={product} />
+                  <ProductCard2
+                    key={index}
+                    product={product}
+                    isWishlisted={wishlist.some((item) => item.product._id === product._id)}
+                    onToggleWishlist={() => handleToggleWishlist(product)}
+                  />
                 ))
             ) : (
               <div className="h-96 flex items-center justify-center col-span-full">
