@@ -7,14 +7,18 @@ import "animate.css"; // Import Animate.css for animations
 import SageLogo from "../assets/sage-logo.png";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { getCart } from "@/redux/actions/user/cartActions";
 import CarouselTextSlider from "./CarouselTextSlider";
 
 const Navbar = () => {
+  const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.user);
+  const cart = useSelector((state) => state.cart.cart);
+  const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -48,6 +52,7 @@ const Navbar = () => {
   };
 
   useEffect(() => {
+    dispatch(getCart());
     const categoryParam = searchParams.get("category");
     const priceParam = searchParams.get("price");
     const searchParam = searchParams.get("search");
@@ -163,8 +168,13 @@ const Navbar = () => {
             <Link to="/dashboard/wishlist" variant="ghost" size="icon">
               <Heart className="h-5 w-5" />
             </Link>
-            <Link to="/cart" variant="ghost" size="icon">
+            <Link to="/cart" variant="ghost" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             <Link to="/dashboard/profile" variant="ghost" size="icon">
               <User className="h-5 w-5" />
