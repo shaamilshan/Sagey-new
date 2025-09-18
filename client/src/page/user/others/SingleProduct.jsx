@@ -550,8 +550,10 @@ const SingleProduct = () => {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
             {filteredProducts && filteredProducts.length > 0 ? (
-              filteredProducts
-                .slice(0, 4) // Limit to 8 products
+              // Shuffle the filteredProducts array before slicing
+              [...filteredProducts]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 4)
                 .map((pro, index) => (
                   <ProductCard2
                     star={true}
