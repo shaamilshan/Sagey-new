@@ -11,23 +11,17 @@ const getProducts = async (req, res) => {
       filter.name = { $regex: new RegExp(search, "i") };
     }
     if (price) {
-      if (price === "Under 25000") {
-        filter.price = { $lte: 25000 };
+      if (price === "Under 1000") {
+        filter.price = { $lte: 1000 };
       }
-      if (price === "25000-50000") {
-        filter.price = { $gte: 25000, $lte: 50000 };
+      if (price === "1000-2000") {
+        filter.price = { $gte: 1000, $lte: 2000 };
       }
-      if (price === "50000-100000") {
-        filter.price = { $gte: 50000, $lte: 100000 };
+      if (price === "2000-3000") {
+        filter.price = { $gte: 2000, $lte: 3000 };
       }
-      if (price === "100000-150000") {
-        filter.price = { $gte: 100000, $lte: 150000 };
-      }
-      if (price === "200000-300000") {
-        filter.price = { $gte: 200000, $lte: 300000 };
-      }
-      if (price === "Above 300000") {
-        filter.price = { $gte: 300000 };
+      if (price === "3000 above") {
+        filter.price = { $gte: 3000 };
       }
     }
 
