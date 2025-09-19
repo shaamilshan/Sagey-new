@@ -21,7 +21,8 @@ const DashSideNavbar = () => {
 
   return (
     <div className="sm:w-1/5 bg-white h-fit shrink-0 rounded lg:block">
-      <NavLink className="side-nav-link-sp" to="/dashboard/">
+      {/* MODIFIED: Added the 'end' prop to this NavLink for exact matching */}
+      <NavLink className="side-nav-link-sp" to="/dashboard/" end>
         <RiDashboardLine />
         Dashboard
       </NavLink>

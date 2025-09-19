@@ -153,13 +153,22 @@ const deleteOneProductFromWishlist = async (req, res) => {
         },
       },
       { new: true }
-    );
+    ).populate("items.product", {
+      name: 1,
+      imageURL: 1,
+      price: 1,
+      markup: 1,
+      status: 1,
+    });
 
     if (!updatedWishlist) {
       throw Error("Invalid Product");
     }
 
-    res.status(200).json({ productId });
+    res.status(200).json({ 
+      productId,
+      wishlist: updatedWishlist 
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

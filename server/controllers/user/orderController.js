@@ -201,7 +201,7 @@ const createOrder = async (req, res) => {
     const products = cart.items.map((item) => ({
       productId: item.product._id,
       quantity: item.quantity,
-      totalPrice: (item.product.price || 0) * item.quantity,
+      totalPrice: ((item.product.price || 0) + (item.product.markup || 0)) * item.quantity,
       price: item.product.price || 0,
       markup: item.product.markup || 0, // Ensure markup is always a number
       attributes: item.attributes || new Map(), // Ensure attributes is always defined
@@ -285,7 +285,7 @@ const createOrder = async (req, res) => {
     }
     
     cart.items.forEach((item) => {
-      const itemPrice = item.product.price || 0;
+      const itemPrice = (item.product.price || 0) + (item.product.markup || 0);
       sum = sum + itemPrice * item.quantity;
       totalQuantity = totalQuantity + item.quantity;
     });

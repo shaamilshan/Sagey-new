@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AiOutlinePlus } from "react-icons/ai";
+import { AiOutlineAppstore, AiOutlineDown } from "react-icons/ai";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getProducts } from "../../../../redux/actions/admin/productActions";
+import { getCategories } from "../../../../redux/actions/admin/categoriesAction";
 import TableRow from "./TableRow";
 import BreadCrumbs from "../../Components/BreadCrumbs";
 import FilterArray from "../../Components/FilterArray";
@@ -19,6 +21,7 @@ const Products = () => {
   const { products, loading, error, totalAvailableProducts } = useSelector(
     (state) => state.products
   );
+  const { categories } = useSelector((state) => state.categories);
 
   // Filteration
   const [startingDate, setStartingDate] = useState("");
@@ -26,6 +29,7 @@ const Products = () => {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const handleFilter = (type, value) => {
     const params = new URLSearchParams(window.location.search);
@@ -56,9 +60,11 @@ const Products = () => {
     params.delete("status");
     params.delete("startingDate");
     params.delete("endingDate");
+    params.delete("category");
     setSearch("");
     setStartingDate("");
     setEndingDate("");
+    setSelectedCategory("");
     setSearchParams(params);
   };
 
@@ -68,7 +74,14 @@ const Products = () => {
     const params = new URLSearchParams(window.location.search);
     const pageNumber = params.get("page");
     setPage(parseInt(pageNumber || 1));
+    const cat = params.get("category") || "";
+    setSelectedCategory(cat);
   }, [searchParams]);
+
+  // load categories for dropdown once
+  useEffect(() => {
+    dispatch(getCategories("limit=1000"));
+  }, []);
 
   return (
     <>
@@ -105,7 +118,27 @@ const Products = () => {
             ]}
             handleClick={handleFilter}
           />
-          <div className="flex my-2 gap-3">
+          <div className="flex my-2 gap-3 items-center">
+            <div className="relative">
+              <select
+                className="cursor-pointer admin-button-fl bg-white hover:bg-gray-200 active:bg-gray-300 pr-16 pl-16 appearance-none min-w-[220px] h-12 py-2 text-center"
+                value={selectedCategory}
+                onChange={(e) => handleFilter("category", e.target.value)}
+              >
+                <option value="">All categories</option>
+                {categories?.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none text-base">
+                <AiOutlineAppstore />
+              </span>
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none text-base">
+                <AiOutlineDown />
+              </span>
+            </div>
             <RangeDatePicker
               handleFilter={handleFilter}
               startingDate={startingDate}
@@ -152,6 +185,9 @@ const Products = () => {
             )
           )}
           <div className="py-5">
+            <div className="text-gray-600 mb-2">
+              Total products: <span className="font-semibold">{totalAvailableProducts ?? 0}</span>
+            </div>
             <Pagination
               handleClick={handleFilter}
               page={page}

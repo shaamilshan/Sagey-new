@@ -48,7 +48,7 @@ const generateInvoicePDF = async (order) => {
         .image("public/official/sage-logo.png", 50, 45, { width: 70 })
         .fillColor("#444444")
         .fontSize(20)
-        .text("Sagey Inc.", 95, 85)
+        // .text("Sagey Inc.", 95, 85)
         .fontSize(10)
         .text("7th Avenue, Sector 801", 200, 65, { align: "right" })
         .text("Calicut, Kerala, IN", 200, 80, { align: "right" })
@@ -114,7 +114,7 @@ const generateInvoicePDF = async (order) => {
           item.productId.name,
           item.price + item.markup,
           item.quantity,
-          item.price + item.markup * item.quantity
+          (item.price + item.markup ) * item.quantity
         );
       }
 

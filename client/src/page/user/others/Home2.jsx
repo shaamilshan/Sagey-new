@@ -16,13 +16,13 @@ import MyBannerMobile from "../../../assets/bannermob.png";
 
 const SocialIcon = ({ type, size = "responsive", onClick, className = "" }) => {
   const sizes = {
-    sm: "w-6 h-6",
+    sm: "w-8 h-8",
     md: "w-12 h-12", 
     lg: "w-16 h-16",
     responsive: "w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12"
   };
   const iconSizes = {
-    sm: "w-3.5 h-3.5",
+    sm: "w-4 h-4",
     md: "w-6 h-6",
     lg: "w-8 h-8",
     responsive: "w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"

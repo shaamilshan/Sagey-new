@@ -65,11 +65,16 @@ const wishlistSlice = createSlice({
         state.loading = false;
         state.error = null;
 
-        const { productId } = payload;
-
-        state.wishlist = state.wishlist.filter((item) => {
-          return item.product._id !== productId;
-        });
+        // Use the updated wishlist from the server response
+        if (payload && payload.wishlist && payload.wishlist.items) {
+          state.wishlist = payload.wishlist.items;
+        } else {
+          // Fallback: filter out the deleted item
+          const { productId } = payload;
+          state.wishlist = state.wishlist.filter((item) => {
+            return item.product._id !== productId;
+          });
+        }
 
         toast.success("Item Deleted");
       })

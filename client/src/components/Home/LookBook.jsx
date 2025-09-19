@@ -59,7 +59,7 @@ const AboutSection = () => {
   };
 
   return (
-    <section className="w-full flex flex-col md:flex-row min-h-screen bg-primary">
+    <section id="about-us"className="w-full flex flex-col md:flex-row min-h-screen bg-primary">
       
       {/* Left Column: Image with Light Background */}
       <div className="w-full md:w-5/12 bg-gray-100 flex flex-col justify-center items-start p-8 md:p-12 lg:p-16">

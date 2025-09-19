@@ -205,7 +205,7 @@ const OrderDetail = () => {
             </div>
             {/* Total Price, Order ID, and product count, order placement date */}
             <div>
-              <div className="p-2 sm:p-5 m-5 bg-gray-200 rounded-lg flex flex-col sm:flex-row items-center justify-between">
+              <div className="p-2 sm:p-5 m-5 bg-gray-200 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between">
                 <div>
                   <h1 className="sm:text-lg font-semibold">
                     #{orderData.orderId || orderData._id}
@@ -221,7 +221,7 @@ const OrderDetail = () => {
                 <h1 className="text-3xl font-bold">{orderData.totalPrice}₹</h1>
               </div>
               {/* Expected Date and status component */}
-              <div className="px-5 pb-5 border-b flex flex-col gap-2 sm:flex-row sm:gap-0 items-center justify-between">
+              <div className="px-5 pb-5 border-b flex flex-col gap-2 sm:flex-row sm:gap-0 items-start sm:items-center justify-between">
                 <div>
                   <OrderDates orderData={orderData} />
                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-1">
@@ -263,17 +263,17 @@ const OrderDetail = () => {
                 </h1>
                 {/* Product table */}
                 <div className="overflow-x-auto">
-                  <table className="w-full table-auto">
+                  <table className="w-full table-auto min-w-[600px]">
                     <thead>
                       <tr className="bg-gray-100 border border-gray-300">
-                        <td className="py-2 px-1 w-4/12">Products</td>
-                        <td className="py-2 px-1 w-1/12">Price</td>
-                        <td className="py-2 px-1 w-1/12">Quantity</td>
-                        <td className="py-2 px-1 w-1/12">Sub-Total</td>
+                        <td className="py-3 px-2 sm:px-4 w-4/12 text-sm font-semibold">Products</td>
+                        <td className="py-3 px-2 sm:px-4 w-1/12 text-sm font-semibold text-center">Price</td>
+                        <td className="py-3 px-2 sm:px-4 w-1/12 text-sm font-semibold text-center">Quantity</td>
+                        <td className="py-3 px-2 sm:px-4 w-1/12 text-sm font-semibold text-center">Sub-Total</td>
                         {orderData.status !== "pending" &&
                           orderData.status !== "processing" &&
                           orderData.status !== "shipped" && (
-                            <td className="py-2 px-1 w-2/12">Review</td>
+                            <td className="py-3 px-2 sm:px-4 w-2/12 text-sm font-semibold text-center">Review</td>
                           )}
                       </tr>
                     </thead>

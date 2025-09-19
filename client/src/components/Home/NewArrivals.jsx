@@ -1,9 +1,13 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useCallback } from "react";
 import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ProductCard2 from "../Cards/ProductCard2";
+
+// Imports for Redux state and actions
 import { useDispatch, useSelector } from "react-redux";
 import { getUserProducts } from "@/redux/actions/user/userProductActions";
+import { addToWishlist, deleteOneProductFromWishlist } from "@/redux/actions/user/wishlistActions";
+
 import { useNavigate, useSearchParams } from "react-router-dom";
 import JustLoading from "../JustLoading";
 import AOS from "aos";
@@ -22,16 +26,17 @@ const categories = [
   { label: "KNEE LENGTH", icon: kneelength, category: "KNEE LENGTH" },
 ];
 
-// To enable looping when all items are visible, we duplicate the array.
 const loopedCategories = categories.length > 0 ? [...categories, ...categories] : [];
 
 const NewArrivals = () => {
-  const [wishlist, setWishlist] = useState([]);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { userProducts, loading } = useSelector((state) => state.userProducts);
   const dispatch = useDispatch();
-  
+
+  // Get data from the global Redux store
+  const { userProducts, loading } = useSelector((state) => state.userProducts);
+  const { wishlist } = useSelector((state) => state.wishlist);
+
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
     loop: true, 
     align: 'start' 
@@ -45,12 +50,15 @@ const NewArrivals = () => {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
-  const toggleWishlist = (product) => {
-    setWishlist((prev) =>
-      prev.some((item) => item._id === product._id)
-        ? prev.filter((item) => item._id !== product._id)
-        : [...prev, product]
-    );
+  // Handler function to add or remove items from the wishlist
+  const handleToggleWishlist = (product) => {
+    const isItemInWishlist = wishlist.some(item => item.product._id === product._id);
+
+    if (isItemInWishlist) {
+      dispatch(deleteOneProductFromWishlist(product._id));
+    } else {
+      dispatch(addToWishlist({ product: product._id }));
+    }
   };
 
   useEffect(() => {
@@ -58,14 +66,12 @@ const NewArrivals = () => {
       duration: 800,
       once: true,
     });
-
     dispatch(getUserProducts(searchParams));
   }, [searchParams, dispatch]);
 
   return (
     <div className="bg-[#065c63] px-4 py-10" id="newArrival" data-aos="fade-up">
       <div className="bg-white rounded-[30px] p-6 sm:p-10 max-w-7xl mx-auto shadow-md">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-[#065c63] text-2xl sm:text-xl md:text-3xl font-bold mb-6">
@@ -74,7 +80,6 @@ const NewArrivals = () => {
           </div>
         </div>
 
-        {/* Products */}
         {loading ? (
           <div className="flex justify-center items-center h-96">
             <JustLoading size={10} />
@@ -83,22 +88,24 @@ const NewArrivals = () => {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {userProducts && userProducts.length > 0 ? (
-                userProducts.slice(0, 4).map((product, index) => (
-                  <ProductCard2
-                    key={index}
-                    product={product}
-                    isWishlisted={wishlist.some((item) => item._id === product._id)}
-                    onToggleWishlist={toggleWishlist}
-                  />
-                ))
+                userProducts.slice(0, 4).map((product, index) => {
+                  const isWishlisted = wishlist.some(item => item.product._id === product._id);
+                  
+                  return (
+                    <ProductCard2
+                      key={index}
+                      product={product}
+                      isWishlisted={isWishlisted}
+                      onToggleWishlist={handleToggleWishlist}
+                    />
+                  );
+                })
               ) : (
                 <div className="h-96 flex items-center justify-center col-span-full">
                   <p>Nothing to show</p>
                 </div>
               )}
             </div>
-
-            {/* View More Button */}
             <div className="flex justify-center mt-6">
               <button
                 onClick={() => navigate(`/collections`)}
@@ -111,7 +118,6 @@ const NewArrivals = () => {
         )}
       </div>
 
-      {/* Category Slider */}
       <div className="mt-8 px-4 py-12">
         <div className="relative max-w-7xl mx-auto">
           <div className="overflow-hidden" ref={emblaRef}>
@@ -119,7 +125,6 @@ const NewArrivals = () => {
               {loopedCategories.map((item, index) => (
                 <div
                   key={index}
-                  // Shows 2 on mobile, 3 on tablet, 4 on large screens
                   className="flex-[0_0_50%] min-w-0 pl-4 md:flex-[0_0_33.33%] lg:flex-[0_0_25%]"
                 >
                   <div
@@ -139,7 +144,6 @@ const NewArrivals = () => {
               ))}
             </div>
           </div>
-          {/* Navigation Buttons visible on all screens */}
           <Button
             variant="outline"
             size="icon"

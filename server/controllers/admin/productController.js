@@ -11,6 +11,7 @@ const getProducts = async (req, res) => {
       limit = 10,
       startingDate,
       endingDate,
+      category, // category id for filtering
     } = req.query;
 
     let filter = {};
@@ -21,9 +22,16 @@ const getProducts = async (req, res) => {
     if (search) {
       filter.name = { $regex: new RegExp(search, "i") };
     }
+    // Category filtering
+    if (category) {
+      if (!mongoose.Types.ObjectId.isValid(category)) {
+        throw Error("Invalid category id");
+      }
+      filter.category = category;
+    }
     const skip = (page - 1) * limit;
 
-    // Date
+    // Date filtering
     if (startingDate) {
       const date = new Date(startingDate);
       filter.createdAt = { $gte: date };
@@ -49,7 +57,7 @@ const getProducts = async (req, res) => {
   }
 };
 
-// Get single Product
+// Get a single Product
 const getProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -70,7 +78,7 @@ const getProduct = async (req, res) => {
   }
 };
 
-// Creating new Product
+// Creating a new Product
 const addProduct = async (req, res) => {
   try {
     let formData = { ...req.body, isActive: true };
@@ -109,12 +117,6 @@ const addProduct = async (req, res) => {
       
       let hasMainImage = false;
       files.forEach((file) => {
-        console.log('Processing file:', {
-          fieldname: file.fieldname,
-          filename: file.filename,
-          size: file.size
-        });
-        
         if (file.fieldname === "imageURL") {
           formData.imageURL = file.filename;
           hasMainImage = true;
@@ -130,64 +132,47 @@ const addProduct = async (req, res) => {
       throw new Error("Product thumbnail image is required");
     }
 
-    console.log('Creating product with data:', {
-      name: formData.name,
-      category: formData.category,
-      price: formData.price,
-      imageURL: formData.imageURL,
-      moreImageCount: formData.moreImageURL ? formData.moreImageURL.length : 0
-    });
-
     const product = await Product.create(formData);
-
     res.status(200).json({ product });
   } catch (error) {
     console.error('Product creation error:', error);
     res.status(400).json({ error: error.message });
   }
 };
+
 // Update a Product
 const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
     const formData = req.body;
-    console.log("Updation: ", formData);
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       throw Error("Invalid ID!!!");
     }
 
     const files = req?.files;
-
-    // Retrieve the existing product from the database
     const existingProduct = await Product.findById(id);
     if (!existingProduct) {
       throw Error("No Such Product");
     }
 
     if (files && files.length > 0) {
-      // Initialize arrays for new images
-      let newMoreImageURL = [...existingProduct.moreImageURL]; // Start with existing images
-      let newImageURL = existingProduct.imageURL; // Keep existing thumbnail
+      let newMoreImageURL = [...existingProduct.moreImageURL];
+      let newImageURL = existingProduct.imageURL;
 
       files.map((file) => {
         if (file.fieldname === "imageURL") {
-          // Update the thumbnail image only if a new one is provided
           newImageURL = file.filename;
         } else {
-          // Append new images to the existing array
           newMoreImageURL.push(file.filename);
         }
       });
-
-      // Set the new values in formData
       formData.imageURL = newImageURL;
       formData.moreImageURL = newMoreImageURL;
     }
 
-    // Handle deletion of images
     if (formData.imagesToDelete) {
-      const imagesToDelete = JSON.parse(formData.imagesToDelete); // Expect this to be a JSON string from the frontend
+      const imagesToDelete = JSON.parse(formData.imagesToDelete);
       formData.moreImageURL = formData.moreImageURL.filter(
         (img) => !imagesToDelete.includes(img)
       );
@@ -198,13 +183,11 @@ const updateProduct = async (req, res) => {
       formData.attributes = attributes;
     }
 
-    // Update the product in the database
     const product = await Product.findOneAndUpdate(
       { _id: id },
       { $set: { ...formData } },
       { new: true }
     );
-    console.log(product);
 
     if (!product) {
       throw Error("No Such Product");
@@ -213,7 +196,6 @@ const updateProduct = async (req, res) => {
     res.status(200).json({ product });
   } catch (error) {
     console.log(error);
-    
     res.status(400).json({ error: error.message });
   }
 };

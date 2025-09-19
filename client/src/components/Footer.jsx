@@ -65,7 +65,7 @@ function Footer() {
               <h4 className="text-lg font-bold mb-4">QUICK LINKS</h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="/about-us" className="hover:text-gray-400 transition-colors">ABOUT US</a>
+                  <a href="/#about-us" className="hover:text-gray-400 transition-colors">ABOUT US</a>
                 </li>
                 <li>
                   <a href="https://maps.app.goo.gl/fotcAexeYhcCYwMMA" className="hover:text-gray-400 transition-colors">LOCATION</a>

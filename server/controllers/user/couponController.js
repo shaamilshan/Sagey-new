@@ -60,7 +60,7 @@ const applyCoupon = async (req, res) => {
     let totalQuantity = 0;
 
     cart.items.map((item) => {
-      sum = sum + (item.product.price ) * item.quantity;
+      sum = sum + ((item.product.price || 0) + (item.product.markup || 0)) * item.quantity;
       totalQuantity = totalQuantity + item.quantity;
     });
 

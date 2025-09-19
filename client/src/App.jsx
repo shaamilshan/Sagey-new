@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 
 // Redux
 import { getUserDataFirst } from "./redux/actions/userActions";
+import { getWishlist } from "./redux/actions/user/wishlistActions";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -71,6 +72,10 @@ function App() {
   useEffect(() => {
     if (!user) {
       dispatch(getUserDataFirst());
+    }
+    // Load wishlist when user is available
+    if (user && user.role === "user") {
+      dispatch(getWishlist());
     }
     console.log(user);
   }, [dispatch, user]);

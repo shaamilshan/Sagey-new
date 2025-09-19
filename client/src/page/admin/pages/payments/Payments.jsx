@@ -90,13 +90,13 @@ const Payments = () => {
               <FiDownload />
               Export
             </button>
-            <button
+            {/* <button
               className="admin-button-fl bg-blue-700 text-white"
               onClick={() => navigate("create")}
             >
               <AiOutlinePlus />
               Create Order
-            </button>
+            </button> */}
           </div>
         </div>
         <div className="lg:flex justify-between items-center font-semibold">
