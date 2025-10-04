@@ -42,7 +42,13 @@ const ProductCard2 = ({ product, isWishlisted, onToggleWishlist, showWishlistOnH
 
       {/* Centered Text */}
       <div className="space-y-2 text-center">
-        <h3 className="text-sm font-medium uppercase tracking-wide">
+        <h3
+          className="text-sm font-medium uppercase tracking-wide cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/product/${product._id}`);
+          }}
+        >
           {product.name}
         </h3>
         <p className="text-sm text-gray-600 line-clamp-2">

@@ -210,7 +210,7 @@ const createOrder = async (req, res) => {
     // Calculate shipping charges using Delhivery
     let shippingCharges = 0;
     let delhiveryData = {};
-    let codFee = 0; // Initialize COD fee here
+  let codFee = 100; // Initialize COD fee here
     
     console.log('📦 Starting shipping rate calculation...');
     console.log('Payment Mode:', paymentMode);
@@ -251,7 +251,7 @@ const createOrder = async (req, res) => {
       
       // Add COD charges to total if COD payment
       if (paymentMode === 'cashOnDelivery') {
-        codFee += shippingRates.surface.cod_charges;
+      codFee += 100; // Set COD fee to 100
         console.log('💵 Added COD charges:', shippingRates.surface.cod_charges);
       }
     } catch (shippingError) {
@@ -281,7 +281,7 @@ const createOrder = async (req, res) => {
 
     // Set COD fee if payment mode is cash on delivery
     if (paymentMode === "cashOnDelivery") {
-      codFee = 200;
+    codFee = 100;
     }
     
     cart.items.forEach((item) => {

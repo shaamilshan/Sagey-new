@@ -47,8 +47,9 @@ const SingleProduct = () => {
   });
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
+  // Show products with the same name as the current product, excluding itself
   const filteredProducts = userProducts?.filter(
-    (product) => product._id !== id
+    (p) => p._id !== id && p.name === product.name
   );
 
   const dispatchAddWishlist = () => {

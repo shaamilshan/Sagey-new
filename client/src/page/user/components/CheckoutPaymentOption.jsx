@@ -24,7 +24,7 @@ const CheckoutPaymentOption = ({
             <GiPayMoney className="text-2xl" />
           </div>
           <p className="mb-2 mt-2 text-sm sm:text-base font-bold">Cash On Delivery</p>
-          <p className="text-xs text-gray-600 mb-2">+₹200 COD Fee</p>
+          <p className="text-xs text-gray-600 mb-2">+₹100 COD Fee</p>
           <input
             type="radio"
             name="paymentMode"

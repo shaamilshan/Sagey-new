@@ -58,7 +58,7 @@ const Checkout = () => {
     
     // Set COD fee based on payment method
     if (paymentMethod === "cashOnDelivery") {
-      dispatch(setCodFee(200 + shippingInfo.codCharges)); // COD fee + shipping COD charges
+  dispatch(setCodFee(100 + shippingInfo.codCharges)); // COD fee + shipping COD charges
     } else {
       dispatch(setCodFee(0));
     }
@@ -70,7 +70,7 @@ const Checkout = () => {
     
     // Update COD fee if payment method is COD
     if (selectedPayment === "cashOnDelivery") {
-      dispatch(setCodFee(200 + shippingData.codCharges));
+  dispatch(setCodFee(100 + shippingData.codCharges));
     }
   };
 
