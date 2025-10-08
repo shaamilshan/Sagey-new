@@ -201,16 +201,19 @@ const createOrder = async (req, res) => {
     const products = cart.items.map((item) => ({
       productId: item.product._id,
       quantity: item.quantity,
-      totalPrice: ((item.product.price || 0) + (item.product.markup || 0)) * item.quantity,
+      // totalPrice should represent the ACTUAL selling amount charged (exclude markup / MRP)
+      totalPrice: (item.product.price || 0) * item.quantity,
       price: item.product.price || 0,
-      markup: item.product.markup || 0, // Ensure markup is always a number
-      attributes: item.attributes || new Map(), // Ensure attributes is always defined
+      // Keep markup ONLY as reference (e.g., original MRP) – do not add to financial totals
+      markup: item.product.markup || 0,
+      attributes: item.attributes || new Map(),
     }));
 
     // Calculate shipping charges using Delhivery
     let shippingCharges = 0;
     let delhiveryData = {};
-  let codFee = 100; // Initialize COD fee here
+    // Start COD fee at 0 – will set only if COD
+    let codFee = 0;
     
     console.log('📦 Starting shipping rate calculation...');
     console.log('Payment Mode:', paymentMode);
@@ -251,8 +254,9 @@ const createOrder = async (req, res) => {
       
       // Add COD charges to total if COD payment
       if (paymentMode === 'cashOnDelivery') {
-      codFee += 100; // Set COD fee to 100
-        console.log('💵 Added COD charges:', shippingRates.surface.cod_charges);
+        // Enforce flat COD fee of 100 (ignore carrier cod_charges)
+        codFee = 100;
+        console.log('💵 COD fee applied (flat):', codFee);
       }
     } catch (shippingError) {
       console.error('❌ Shipping rate calculation failed:', shippingError.message);
@@ -269,28 +273,31 @@ const createOrder = async (req, res) => {
       };
       
       if (paymentMode === 'cashOnDelivery') {
-        codFee += 40; // Default COD charges
+        // Fallback flat COD fee
+        codFee = 100;
       }
       
       console.log('🔄 Using fallback shipping data:', JSON.stringify(delhiveryData, null, 2));
     }
 
-    // Calculate the total sum and quantity
+    // Calculate the total sum and quantity (EXCLUDING markup from financial calc)
     let sum = 0;
     let totalQuantity = 0;
 
-    // Set COD fee if payment mode is cash on delivery
-    if (paymentMode === "cashOnDelivery") {
-    codFee = 100;
-    }
-    
     cart.items.forEach((item) => {
-      const itemPrice = (item.product.price || 0) + (item.product.markup || 0);
-      sum = sum + itemPrice * item.quantity;
-      totalQuantity = totalQuantity + item.quantity;
+      const itemPrice = (item.product.price || 0); // Do NOT add markup
+      sum += itemPrice * item.quantity;
+      totalQuantity += item.quantity;
     });
 
-    // Add shipping charges to total
+    // (Optional) If you ever want to expose the theoretical savings / markup total:
+    const totalShownSavings = cart.items.reduce(
+      (acc, i) => acc + ((i.product.markup || 0) * i.quantity),
+      0
+    );
+    // Not stored now, but could be added to orderData if needed.
+
+    // Add shipping + COD fee
     let sumWithTax = sum + shippingCharges + codFee; // Add shipping and COD fee to total
     if (cart.discount && cart.type === "percentage") {
       const discountAmount = (sum * cart.discount) / 100;
@@ -308,16 +315,14 @@ const createOrder = async (req, res) => {
       user: _id,
       address: addressData,
       products: products,
-      subTotal: sum,
-      shipping: shippingCharges, // Add shipping charges
-      tax: 0, // No tax
-      totalPrice: sumWithTax,
+      subTotal: sum, // Pure selling total without markup
+      shipping: paymentMode === 'cashOnDelivery' ? 0 : shippingCharges, // Hide shipping charge when COD (absorbed)
+      tax: 0,
+      totalPrice: sum + (paymentMode === 'cashOnDelivery' ? 0 : shippingCharges) + codFee - (cart.discount ? (cart.type === 'percentage' ? (sum * cart.discount)/100 : cart.discount) : 0),
       paymentMode,
       totalQuantity,
       statusHistory: [
-        {
-          status: "pending",
-        },
+        { status: 'pending' },
       ],
       ...(notes ? { notes } : {}),
       ...(cart.coupon ? { coupon: cart.coupon } : {}),
@@ -325,7 +330,7 @@ const createOrder = async (req, res) => {
       ...(cart.discount ? { discount: cart.discount } : {}),
       ...(cart.type ? { couponType: cart.type } : {}),
       codFee: codFee,
-      delhivery: delhiveryData, // Add Delhivery data
+      delhivery: delhiveryData,
     };
 
     // Update product quantities first
@@ -704,17 +709,20 @@ const buyNow = async (req, res) => {
       return res.status(400).json({ error: "Invalid product price" });
     }
 
-    const price = product.price || 0;
-    const markup = product.markup || 0;
-    let sum = (price + markup) * quantity;
-    let codFee = 0;
+    const price = product.price || 0; // Actual selling price
+    const markup = product.markup || 0; // Reference only (not added to totals)
 
-    // Set COD fee if payment mode is cash on delivery
-    if (paymentMode === "cashOnDelivery") {
-      codFee = 200;
-    }
+    // Subtotal excludes markup
+    const subTotal = price * quantity;
 
-    const sumWithTax = sum + codFee;
+    // Flat COD fee logic (same as createOrder)
+    const codFee = paymentMode === "cashOnDelivery" ? 100 : 0;
+
+    // Shipping hidden / absorbed for COD else could be a flat placeholder (e.g., 50) until real-time calc implemented
+    const shipping = paymentMode === "cashOnDelivery" ? 0 : 50; // Adjust if dynamic shipping needed
+
+    // Total price: subtotal + shipping + COD fee (no discount/tax here)
+    const totalPrice = subTotal + shipping + codFee;
 
     // Address validation
     const addressData = await Address.findOne({ _id: address });
@@ -722,36 +730,35 @@ const buyNow = async (req, res) => {
       return res.status(404).json({ error: "Address not found" });
     }
     
-    let products = [];
+    const productsArr = [
+      {
+        productId: product._id,
+        quantity: quantity,
+        totalPrice: price * quantity, // price * qty without markup
+        price: price,
+        markup: markup,
+        attributes: new Map(), // Provide empty attributes for buyNow
+      },
+    ];
 
-    products.push({
-      productId: product._id,
-      quantity: quantity,
-      totalPrice: sum,
-      price: price,
-      markup: markup,
-      attributes: new Map(), // Provide empty attributes for buyNow
-    });
-
-    let orderData = {
+    const orderData = {
       user: _id,
       address: addressData,
-      products: products,
-      subTotal: sum,
+      products: productsArr,
+      subTotal: subTotal,
+      shipping: shipping, // 0 for COD
       tax: 0, // No tax
-      totalPrice: sumWithTax,
+      totalPrice: totalPrice,
       paymentMode,
       totalQuantity: quantity,
       statusHistory: [
-        {
-          status: "pending",
-        },
+        { status: "pending" },
       ],
       codFee: codFee,
       ...(notes ? { notes } : {}),
     };
 
-    // Update product stock with empty attributes map for buyNow
+    // Update product stock
     await updateProductList(id, -quantity, new Map());
 
     const order = await Order.create(orderData);

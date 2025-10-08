@@ -55,6 +55,8 @@ const OrderDetails = () => {
     }
   };
 
+  const effectiveCodFee = orderData && orderData.paymentMode === 'cashOnDelivery' ? 100 : 0;
+
   return (
     <div className="p-5 w-full overflow-y-auto text-sm">
       <div className="xy-center font-semibold">
@@ -255,12 +257,14 @@ const OrderDetails = () => {
                   <p className="cart-total-li-first">Sub Total</p>
                   <p className="cart-total-li-second">{orderData.subTotal}₹</p>
                 </div>
-                <div className="cart-total-li">
-                  <p className="cart-total-li-first">Shipping</p>
-                  <p className="cart-total-li-second">
-                    {orderData.shipping === 0 ? "Free" : orderData.shipping}
-                  </p>
-                </div>
+                {orderData.paymentMode === 'cashOnDelivery' ? null : (
+                  <div className="cart-total-li">
+                    <p className="cart-total-li-first">Shipping</p>
+                    <p className="cart-total-li-second">
+                      {orderData.shipping === 0 ? "Free" : orderData.shipping}
+                    </p>
+                  </div>
+                )}
                 <div className="cart-total-li">
                   <p className="cart-total-li-first">Discount</p>
                   <p className="cart-total-li-second">
@@ -271,10 +275,10 @@ const OrderDetails = () => {
                   <p className="cart-total-li-first">Tax</p>
                   <p className="cart-total-li-second">{orderData.tax || 0}₹</p>
                 </div>
-                {orderData.codFee > 0 && (
+                {orderData.paymentMode === 'cashOnDelivery' && orderData.codFee > 0 && (
                   <div className="cart-total-li">
                     <p className="cart-total-li-first">COD Fee</p>
-                    <p className="cart-total-li-second">{orderData.codFee}₹</p>
+                    <p className="cart-total-li-second">{effectiveCodFee}₹</p>
                   </div>
                 )}
               </div>

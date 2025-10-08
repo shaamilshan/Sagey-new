@@ -101,6 +101,8 @@ const OrderDetail = () => {
     loadData();
   }, [id]);
 
+  const effectiveCodFee = orderData && orderData.paymentMode === 'cashOnDelivery' ? 100 : 0;
+
   return (
     <>
       {/* Order Cancellation Modal */}
@@ -302,14 +304,16 @@ const OrderDetail = () => {
                           {orderData.subTotal}₹
                         </p>
                       </div>
-                      <div className="cart-total-li">
-                        <p className="cart-total-li-first">Shipping</p>
-                        <p className="cart-total-li-second">
-                          {orderData.shipping === 0
-                            ? "Free"
-                            : orderData.shipping}
-                        </p>
-                      </div>
+                      {orderData.paymentMode === 'cashOnDelivery' ? null : (
+                        <div className="cart-total-li">
+                          <p className="cart-total-li-first">Shipping</p>
+                          <p className="cart-total-li-second">
+                            {orderData.shipping === 0
+                              ? "Free"
+                              : orderData.shipping}
+                          </p>
+                        </div>
+                      )}
                       <div className="cart-total-li">
                         <p className="cart-total-li-first">Discount</p>
                         <p className="cart-total-li-second">
@@ -320,10 +324,10 @@ const OrderDetail = () => {
                         <p className="cart-total-li-first">Tax</p>
                         <p className="cart-total-li-second">{orderData.tax}₹</p>
                       </div>
-                      {orderData.codFee > 0 && (
+                      {orderData.paymentMode === 'cashOnDelivery' && (
                         <div className="cart-total-li">
                           <p className="cart-total-li-first">COD Fee</p>
-                          <p className="cart-total-li-second">{orderData.codFee}₹</p>
+                          <p className="cart-total-li-second">{effectiveCodFee}₹</p>
                         </div>
                       )}
                     </div>
