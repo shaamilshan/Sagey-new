@@ -8,29 +8,52 @@ const getWishlist = async (req, res) => {
   try {
     const token = req.cookies.user_token;
 
-    const { _id } = jwt.verify(token, process.env.SECRET);
-
-    if (!mongoose.Types.ObjectId.isValid(_id)) {
-      throw Error("Invalid ID!!!");
+    // If not logged in, return empty wishlist gracefully
+    if (!token) {
+      return res.status(200).json({ wishlist: { items: [] } });
     }
 
-    const wishlist = await Wishlist.findOne({ user: _id })
-      .populate("items.product", {
-        name: 1,
-        imageURL: 1,
-        price: 1,
-        markup: 1,
-        status: 1,
+    let _id;
+    try {
+      ({ _id } = jwt.verify(token, process.env.SECRET));
+    } catch (e) {
+      // Invalid token – treat as empty wishlist rather than error
+      return res.status(200).json({ wishlist: { items: [] } });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(_id)) {
+      // Invalid id – treat as empty wishlist
+      return res.status(200).json({ wishlist: { items: [] } });
+    }
+
+    const wishlistDoc = await Wishlist.findOne({ user: _id })
+      .populate({
+        path: "items.product",
+        select: {
+          name: 1,
+          imageURL: 1,
+          price: 1,
+          markup: 1,
+          status: 1,
+        },
+        // Exclude soft-deleted products from wishlist items
+        match: { isDeleted: { $ne: true } },
       })
       .sort({ createdAt: -1 });
 
-    if (!wishlist) {
-      throw Error("Wishlist is empty");
+    // No wishlist yet – respond with empty list
+    if (!wishlistDoc) {
+      return res.status(200).json({ wishlist: { items: [] } });
     }
 
-    res.status(200).json({ wishlist });
+    // Filter out items whose product failed to populate (e.g., soft-deleted)
+    const wishlist = wishlistDoc.toObject();
+    wishlist.items = (wishlist.items || []).filter((it) => it && it.product);
+
+    return res.status(200).json({ wishlist });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    // Fallback: still avoid noisy 400s on empty cases
+    return res.status(400).json({ error: error.message });
   }
 };
 
