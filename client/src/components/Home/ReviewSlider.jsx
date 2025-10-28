@@ -7,47 +7,47 @@ import { Card, CardContent } from "@/components/ui/card"
 const reviews = [
   {
     name: 'Sarah M.',
-    message: "I'm blown away by the quality and style of the clothes I received from ShopZoo. From casual wear to elegant dresses, every piece I've bought has exceeded my expectations.",
+    message: "I'm blown away by the quality and style of the clothes I received from Sagey. From casual wear to elegant dresses, every piece I've bought has exceeded my expectations.",
     rating: 5
   },
   {
     name: 'Alex K.',
-    message: "Finding clothes that align with my personal style used to be a challenge until I discovered ShopZoo. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions.",
+    message: "Finding clothes that align with my personal style used to be a challenge until I discovered Sagey. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions.",
     rating: 5
   },
   {
     name: 'James L.',
-    message: "As someone who's always on the lookout for unique fashion pieces, I'm thrilled to have stumbled upon ShopZoo. The selection of clothes is not only diverse but also on-point with the latest trends.",
+    message: "As someone who's always on the lookout for unique fashion pieces, I'm thrilled to have stumbled upon Sagey. The selection of clothes is not only diverse but also on-point with the latest trends.",
     rating: 5
   },
   {
     name: 'Emily R.',
-    message: "ShopZoo has completely transformed my wardrobe. The attention to detail in their designs and the quality of their materials is second to none. Highly recommend!",
+    message: "Sagey has completely transformed my wardrobe. The attention to detail in their designs and the quality of their materials is second to none. Highly recommend!",
     rating: 5
   },
   {
     name: 'Michael B.',
-    message: "I've tried several online stores, but none compare to ShopZoo. Their delivery is quick, and the clothes fit perfectly every time. A loyal customer for life!",
+    message: "I've tried several online stores, but none compare to Sagey. Their delivery is quick, and the clothes fit perfectly every time. A loyal customer for life!",
     rating: 5
   },
   {
     name: 'Sophia H.',
-    message: "The customer service at ShopZoo is incredible! They helped me find the right size and style, and the clothes look amazing. Great experience overall!",
+    message: "The customer service at Sagey is incredible! They helped me find the right size and style, and the clothes look amazing. Great experience overall!",
     rating: 5
   },
   {
     name: 'David T.',
-    message: "ShopZoo is my go-to for trendy and affordable clothing. Every time I shop here, I'm impressed by how stylish and comfortable the clothes are.",
+    message: "Sagey is my go-to for trendy and affordable clothing. Every time I shop here, I'm impressed by how stylish and comfortable the clothes are.",
     rating: 4
   },
   {
     name: 'Olivia W.',
-    message: "I love how ShopZoo keeps their collection fresh and exciting. It feels like they always have something new for me to try. Fantastic variety!",
+    message: "I love how Sagey keeps their collection fresh and exciting. It feels like they always have something new for me to try. Fantastic variety!",
     rating: 5
   },
   {
     name: 'Chris P.',
-    message: "ShopZoo offers unbeatable value for money. The quality of their clothing rivals high-end brands, but the prices are super reasonable.",
+    message: "Sagey offers unbeatable value for money. The quality of their clothing rivals high-end brands, but the prices are super reasonable.",
     rating: 5
   }
 ]
