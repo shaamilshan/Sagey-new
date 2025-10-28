@@ -5,10 +5,12 @@ import { GrClose } from "react-icons/gr";
 import { FiX } from "react-icons/fi";
 import { getSearchSuggestions } from "../redux/actions/user/searchSuggestionsActions";
 import { clearSuggestions, hideSuggestions, showSuggestions } from "../redux/reducers/user/searchSuggestionsSlice";
+import { useNavigate } from "react-router-dom";
 
 
 const SearchBar = ({ handleClick, search, setSearch, placeholder, label, liveFilter = true }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { suggestions, isVisible, loading } = useSelector((state) => state.searchSuggestions);
   const [activeIndex, setActiveIndex] = useState(-1);
   const searchRef = useRef(null);
@@ -44,12 +46,14 @@ const SearchBar = ({ handleClick, search, setSearch, placeholder, label, liveFil
   // Handle suggestion click
   const handleSuggestionClick = (suggestion) => {
     setSearch(suggestion.name);
-    handleClick("search", suggestion.name);
     dispatch(hideSuggestions());
-    // Navigate to product page or search results
-    window.location.href = `${
-      import.meta.env.VITE_FRONTEND_URL
-    }/collections?search=${encodeURIComponent(suggestion.name)}`;
+    if (liveFilter) {
+      // Use live filter on the same page
+      handleClick("search", suggestion.name);
+    } else {
+      // Navigate to collections without creating extra history entries
+      navigate(`/collections?search=${encodeURIComponent(suggestion.name)}`);
+    }
   };
 
   // Handle keyboard navigation
@@ -110,9 +114,11 @@ const SearchBar = ({ handleClick, search, setSearch, placeholder, label, liveFil
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(hideSuggestions());
-    window.location.href = `${
-      import.meta.env.VITE_FRONTEND_URL
-    }/collections?search=${encodeURIComponent(search)}`;
+    if (liveFilter) {
+      handleClick("search", search);
+    } else {
+      navigate(`/collections?search=${encodeURIComponent(search)}`);
+    }
   };
 
   // Clear search
