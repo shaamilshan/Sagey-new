@@ -42,3 +42,42 @@ export const updateProduct = createAsyncThunk(
     );
   }
 );
+
+export const softDeleteProduct = createAsyncThunk(
+  "products/softDeleteProduct",
+  async (id, { rejectWithValue }) => {
+    return commonReduxRequest(
+      "patch",
+      `/admin/product/${id}/soft-delete`,
+      {},
+      appJson,
+      rejectWithValue
+    );
+  }
+);
+
+export const restoreProduct = createAsyncThunk(
+  "products/restoreProduct",
+  async (id, { rejectWithValue }) => {
+    return commonReduxRequest(
+      "patch",
+      `/admin/product/${id}/restore`,
+      {},
+      appJson,
+      rejectWithValue
+    );
+  }
+);
+
+export const getDeletedProducts = createAsyncThunk(
+  "products/getDeletedProducts",
+  async (_, { rejectWithValue }) => {
+    return commonReduxRequest(
+      "get",
+      `/admin/deleted-products`,
+      null,
+      appJson,
+      rejectWithValue
+    );
+  }
+);

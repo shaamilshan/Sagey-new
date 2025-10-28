@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { AiOutlinePlus, AiOutlineEdit } from "react-icons/ai";
+import {
+  AiOutlinePlus,
+  AiOutlineEdit,
+  AiOutlineDelete,
+  AiOutlineReload,
+} from "react-icons/ai";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { getCategories } from "../../../../redux/actions/admin/categoriesAction";
+import {
+  getCategories,
+  softDeleteCategory,
+  restoreCategory,
+  getDeletedCategories,
+} from "../../../../redux/actions/admin/categoriesAction";
 import date from "date-and-time";
 import BreadCrumbs from "../../Components/BreadCrumbs";
 import JustLoading from "../../../../components/JustLoading";
@@ -16,9 +26,13 @@ const Categories = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { categories, loading, error, totalAvailableCategories } = useSelector(
-    (state) => state.categories
-  );
+  const {
+    categories,
+    loading,
+    error,
+    totalAvailableCategories,
+    deletedCategories,
+  } = useSelector((state) => state.categories);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -51,6 +65,20 @@ const Categories = () => {
     const pageNumber = params.get("page");
     setPage(parseInt(pageNumber || 1));
   }, [searchParams]);
+
+  useEffect(() => {
+    // Load deleted categories initially
+    dispatch(getDeletedCategories());
+  }, []);
+
+  const handleSoftDelete = (e, id) => {
+    e.stopPropagation();
+    dispatch(softDeleteCategory(id));
+  };
+
+  const handleRestore = (id) => {
+    dispatch(restoreCategory(id));
+  };
 
   return (
     <>
@@ -147,6 +175,12 @@ const Categories = () => {
                             >
                               <AiOutlineEdit />
                             </span>
+                            <span
+                              className="hover:text-gray-500"
+                              onClick={(e) => handleSoftDelete(e, category._id)}
+                            >
+                              <AiOutlineDelete />
+                            </span>
                           </div>
                         </td>
                       </tr>
@@ -164,6 +198,50 @@ const Categories = () => {
             number={10}
             totalNumber={totalAvailableCategories}
           />
+        </div>
+
+        {/* Recently Deleted */}
+        <div className="mt-6">
+          <details className="bg-white rounded-lg p-4">
+            <summary className="cursor-pointer font-semibold">
+              Recently Deleted ({deletedCategories?.length || 0})
+            </summary>
+            <div className="mt-3 overflow-x-auto">
+              {deletedCategories && deletedCategories.length > 0 ? (
+                <table className="w-full">
+                  <thead className="font-normal">
+                    <tr className="border-b border-gray-200">
+                      <th className="admin-table-head w-4/12">Name</th>
+                      <th className="admin-table-head w-4/12">Deleted At</th>
+                      <th className="admin-table-head w-4/12">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deletedCategories.map((c) => (
+                      <tr key={c._id} className="p-4 border-b border-gray-200">
+                        <td className="admin-table-row">{c.name}</td>
+                        <td className="admin-table-row">
+                          {c.deletedAt
+                            ? new Date(c.deletedAt).toLocaleString()
+                            : ""}
+                        </td>
+                        <td className="admin-table-row">
+                          <button
+                            className="admin-button-fl bg-blue-700 text-white"
+                            onClick={() => handleRestore(c._id)}
+                          >
+                            <AiOutlineReload className="mr-2" /> Restore
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-gray-500">No recently deleted categories.</p>
+              )}
+            </div>
+          </details>
         </div>
       </div>
     </>

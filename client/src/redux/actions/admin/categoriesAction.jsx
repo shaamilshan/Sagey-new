@@ -73,3 +73,53 @@ export const deleteCategory = createAsyncThunk(
     }
   }
 );
+
+// Soft delete Category
+export const softDeleteCategory = createAsyncThunk(
+  "categories/softDeleteCategory",
+  async (id, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.patch(
+        `${URL}/admin/category/${id}/soft-delete`,
+        {},
+        config
+      );
+      return data; // { category }
+    } catch (error) {
+      return handleError(error, rejectWithValue);
+    }
+  }
+);
+
+// Restore Category
+export const restoreCategory = createAsyncThunk(
+  "categories/restoreCategory",
+  async (id, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.patch(
+        `${URL}/admin/category/${id}/restore`,
+        {},
+        config
+      );
+      return data; // { category }
+    } catch (error) {
+      return handleError(error, rejectWithValue);
+    }
+  }
+);
+
+// Get Deleted Categories
+export const getDeletedCategories = createAsyncThunk(
+  "categories/getDeletedCategories",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(
+        `${URL}/admin/deleted-categories`,
+        config
+      );
+      return data; // { categories }
+    } catch (error) {
+      return handleError(error, rejectWithValue);
+    }
+  }
+);

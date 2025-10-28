@@ -9,6 +9,9 @@ const {
   addProduct,
   deleteProduct,
   updateProduct,
+  softDeleteProduct,
+  restoreProduct,
+  getDeletedProducts,
 } = require("../controllers/admin/productController");
 const {
   getCustomers,
@@ -24,6 +27,10 @@ const {
   createCategory,
   deleteCategory,
   updateCategory,
+  // Added soft delete/restore handlers for categories
+  softDeleteCategory,
+  restoreCategory,
+  getDeletedCategories,
 } = require("../controllers/admin/categoryController");
 const {
   getOrders,
@@ -73,8 +80,12 @@ const {
 router.get("/products", getProducts);
 router.get("/product/:id", getProduct);
 router.delete("/product/:id", deleteProduct);
+// Place specific routes BEFORE generic /product/:id
+router.patch("/product/:id/soft-delete", softDeleteProduct);
+router.patch("/product/:id/restore", restoreProduct);
 router.patch("/product/:id", upload.any(), updateProduct);
 router.post("/product", upload.any(), addProduct);
+router.get("/deleted-products", getDeletedProducts);
 
 // Customer controller functions mounting them to corresponding route
 router.get("/customers", getCustomers);
@@ -88,8 +99,12 @@ router.patch("/customer-block-unblock/:id", blockOrUnBlockCustomer);
 router.get("/categories", getCategories);
 router.get("/category/:id", getCategory);
 router.delete("/category/:id", deleteCategory);
+// Place specific category routes BEFORE generic /category/:id
+router.patch("/category/:id/soft-delete", softDeleteCategory);
+router.patch("/category/:id/restore", restoreCategory);
 router.patch("/category/:id", upload.single("imgURL"), updateCategory);
 router.post("/category", upload.single("imgURL"), createCategory);
+router.get("/deleted-categories", getDeletedCategories);
 
 // Order controller functions mounting them to corresponding route
 router.get("/orders", getOrders);

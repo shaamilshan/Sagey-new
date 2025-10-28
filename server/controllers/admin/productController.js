@@ -12,9 +12,14 @@ const getProducts = async (req, res) => {
       startingDate,
       endingDate,
       category, // category id for filtering
+      includeDeleted,
     } = req.query;
 
     let filter = {};
+
+    if (!includeDeleted || includeDeleted === 'false') {
+      filter.isDeleted = { $ne: true };
+    }
 
     if (status) {
       filter.status = status;
@@ -200,7 +205,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
-// Deleting a Product
+// Deleting a Product (hard delete)
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -221,10 +226,76 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+// Soft delete a Product
+const softDeleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw Error("Invalid ID!!!");
+    }
+
+    const updated = await Product.findByIdAndUpdate(
+      id,
+      { $set: { isDeleted: true, deletedAt: new Date(), deletedBy: req.user?._id } },
+      { new: true }
+    );
+
+    if (!updated) {
+      throw Error("No Such Product");
+    }
+
+    res.status(200).json({ product: updated });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Restore a soft-deleted Product
+const restoreProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw Error("Invalid ID!!!");
+    }
+
+    const updated = await Product.findByIdAndUpdate(
+      id,
+      { $set: { isDeleted: false }, $unset: { deletedAt: 1, deletedBy: 1 } },
+      { new: true }
+    );
+
+    if (!updated) {
+      throw Error("No Such Product");
+    }
+
+    res.status(200).json({ product: updated });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Get only deleted products
+const getDeletedProducts = async (req, res) => {
+  try {
+    const deleted = await Product.find({ isDeleted: true })
+      .populate("category", { name: 1 })
+      .sort({ deletedAt: -1 });
+
+    res.status(200).json({ products: deleted });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getProducts,
   getProduct,
   addProduct,
   deleteProduct,
   updateProduct,
+  softDeleteProduct,
+  restoreProduct,
+  getDeletedProducts,
 };

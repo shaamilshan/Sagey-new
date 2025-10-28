@@ -13,12 +13,14 @@ import Pagination from "../../../../components/Pagination";
 import SearchBar from "../../../../components/SearchBar";
 import RangeDatePicker from "../../../../components/RangeDatePicker";
 import ClearFilterButton from "../../Components/ClearFilterButton";
+import { getDeletedProducts, restoreProduct } from "../../../../redux/actions/admin/productActions";
+import { AiOutlineReload } from "react-icons/ai";
 
 const Products = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { products, loading, error, totalAvailableProducts } = useSelector(
+  const { products, loading, error, totalAvailableProducts, deletedProducts } = useSelector(
     (state) => state.products
   );
   const { categories } = useSelector((state) => state.categories);
@@ -81,7 +83,12 @@ const Products = () => {
   // load categories for dropdown once
   useEffect(() => {
     dispatch(getCategories("limit=1000"));
+    dispatch(getDeletedProducts());
   }, []);
+
+  const handleRestore = (id) => {
+    dispatch(restoreProduct(id));
+  };
 
   return (
     <>
@@ -195,6 +202,43 @@ const Products = () => {
               totalNumber={totalAvailableProducts}
             />
           </div>
+        </div>
+
+        {/* Recently Deleted */}
+        <div className="mt-6">
+          <details className="bg-white rounded-lg p-4">
+            <summary className="cursor-pointer font-semibold">Recently Deleted ({deletedProducts?.length || 0})</summary>
+            <div className="mt-3 overflow-x-auto">
+              {deletedProducts && deletedProducts.length > 0 ? (
+                <table className="w-full">
+                  <thead className="font-normal">
+                    <tr className="border-b border-gray-200">
+                      <th className="admin-table-head w-3/12">Name</th>
+                      <th className="admin-table-head w-3/12">Category</th>
+                      <th className="admin-table-head w-2/12">Deleted At</th>
+                      <th className="admin-table-head w-2/12">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deletedProducts.map((p) => (
+                      <tr key={p._id} className="p-4 border-b border-gray-200">
+                        <td className="admin-table-row">{p.name}</td>
+                        <td className="admin-table-row">{p?.category?.name || ''}</td>
+                        <td className="admin-table-row">{p.deletedAt ? new Date(p.deletedAt).toLocaleString() : ''}</td>
+                        <td className="admin-table-row">
+                          <button className="admin-button-fl bg-blue-700 text-white" onClick={() => handleRestore(p._id)}>
+                            <AiOutlineReload className="mr-2" /> Restore
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-gray-500">No recently deleted products.</p>
+              )}
+            </div>
+          </details>
         </div>
       </div>
     </>

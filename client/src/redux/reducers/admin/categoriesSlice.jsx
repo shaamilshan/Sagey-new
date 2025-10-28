@@ -4,13 +4,18 @@ import {
   createNewCategory,
   deleteCategory,
   updateCategory,
+  softDeleteCategory,
+  restoreCategory,
+  getDeletedCategories,
 } from "../../actions/admin/categoriesAction";
+import toast from "react-hot-toast";
 
 const categoriesSlice = createSlice({
   name: "categories",
   initialState: {
     loading: false,
     categories: [],
+    deletedCategories: [],
     error: null,
     totalAvailableCategories: null,
   },
@@ -28,6 +33,18 @@ const categoriesSlice = createSlice({
       .addCase(getCategories.rejected, (state, { payload }) => {
         state.loading = false;
         state.categories = null;
+        state.error = payload;
+      })
+      .addCase(getDeletedCategories.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getDeletedCategories.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.error = null;
+        state.deletedCategories = payload.categories || [];
+      })
+      .addCase(getDeletedCategories.rejected, (state, { payload }) => {
+        state.loading = false;
         state.error = payload;
       })
       .addCase(createNewCategory.pending, (state) => {
@@ -76,6 +93,42 @@ const categoriesSlice = createSlice({
         state.loading = false;
         state.categories = null;
         state.error = payload;
+      })
+      // Soft delete category
+      .addCase(softDeleteCategory.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(softDeleteCategory.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const deleted = payload.category;
+        state.categories = state.categories.filter((c) => c._id !== deleted._id);
+        state.deletedCategories = [deleted, ...state.deletedCategories];
+        if (state.totalAvailableCategories > 0) state.totalAvailableCategories -= 1;
+        toast.success("Category moved to Recently Deleted");
+      })
+      .addCase(softDeleteCategory.rejected, (state, { payload }) => {
+        state.loading = false;
+        state.error = payload;
+        toast.error(payload || "Failed to delete category");
+      })
+      // Restore category
+      .addCase(restoreCategory.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(restoreCategory.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const restored = payload.category;
+        state.deletedCategories = state.deletedCategories.filter(
+          (c) => c._id !== restored._id
+        );
+        state.categories = [restored, ...state.categories];
+        state.totalAvailableCategories = (state.totalAvailableCategories || 0) + 1;
+        toast.success("Category restored");
+      })
+      .addCase(restoreCategory.rejected, (state, { payload }) => {
+        state.loading = false;
+        state.error = payload;
+        toast.error(payload || "Failed to restore category");
       });
   },
 });

@@ -1,12 +1,34 @@
 const Product = require("../../model/productModel");
 const mongoose = require("mongoose");
+const Category = require("../../model/categoryModel");
+
+// Helper to get non-deleted category IDs
+async function getActiveCategoryIds() {
+  const cats = await Category.find({ isDeleted: { $ne: true } }, { _id: 1 }).lean();
+  return cats.map((c) => c._id);
+}
 
 const getProducts = async (req, res) => {
   try {
     const { category, price, search, sort, page = 1, limit = 100 } = req.query;
 
     let filter = {};
-    if (category) filter.category = { $in: category.split(",") };
+
+    // Exclude products whose category is soft-deleted
+    const activeCatIds = await getActiveCategoryIds();
+    const activeCatIdSet = new Set(activeCatIds.map((id) => String(id)));
+
+    if (category) {
+      const requested = category
+        .split(",")
+        .map((id) => id.trim())
+        .filter((id) => id && mongoose.Types.ObjectId.isValid(id) && activeCatIdSet.has(id))
+        .map((id) => new mongoose.Types.ObjectId(id));
+      filter.category = { $in: requested };
+    } else {
+      filter.category = { $in: activeCatIds };
+    }
+
     if (search) {
       filter.name = { $regex: new RegExp(search, "i") };
     }
@@ -24,6 +46,9 @@ const getProducts = async (req, res) => {
         filter.price = { $gte: 3000 };
       }
     }
+
+    // Exclude soft-deleted products
+    filter.isDeleted = { $ne: true };
 
     let sortOptions = {};
 
@@ -55,8 +80,7 @@ const getProducts = async (req, res) => {
         numberOfReviews: 1,
         rating: 1,
         offer: 1,
-        description: 1, // Add description here
-
+        description: 1,
       }
     )
       .sort(sortOptions)
@@ -83,12 +107,15 @@ const getProduct = async (req, res) => {
       throw Error("Invalid ID!!!");
     }
 
-    const product = await Product.findOne({ _id: id }).populate("category", {
+    const activeCatIds = await getActiveCategoryIds();
+
+    const product = await Product.findOne({ _id: id, isDeleted: { $ne: true }, category: { $in: activeCatIds } }).populate("category", {
       name: 1,
     });
 
-    console.log();
-    
+    if (!product) {
+      throw Error("No Such Product");
+    }
 
     res.status(200).json({ product });
   } catch (error) {
@@ -104,12 +131,18 @@ const getAvailableQuantity = async (req, res) => {
       throw Error("Invalid ID!!!");
     }
 
-    const stockQuantity = await Product.findOne(
-      { _id: id },
+    const activeCatIds = await getActiveCategoryIds();
+
+    const stockRecord = await Product.findOne(
+      { _id: id, isDeleted: { $ne: true }, category: { $in: activeCatIds } },
       { stockQuantity: 1 }
     );
 
-    res.status(200).json({ stockQuantity: stockQuantity.stockQuantity });
+    if (!stockRecord) {
+      throw Error("No Such Product");
+    }
+
+    res.status(200).json({ stockQuantity: stockRecord.stockQuantity });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -123,9 +156,13 @@ const getSearchSuggestions = async (req, res) => {
       return res.status(200).json({ suggestions: [] });
     }
 
+    const activeCatIds = await getActiveCategoryIds();
+
     const suggestions = await Product.find(
       {
         status: { $in: ["published", "low quantity"] },
+        isDeleted: { $ne: true },
+        category: { $in: activeCatIds },
         name: { $regex: new RegExp(q, "i") }
       },
       {

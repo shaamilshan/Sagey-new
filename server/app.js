@@ -80,6 +80,29 @@ app.use((error, req, res, next) => {
     type: error.type || "unknown",
   });
 
+  // Ensure CORS headers are present even on errors
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+    "https://sagey.in",
+    "https://www.sagey.in",
+  ];
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Vary", "Origin");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header(
+      "Access-Control-Allow-Headers",
+      req.headers["access-control-request-headers"] || "Content-Type"
+    );
+    res.header(
+      "Access-Control-Allow-Methods",
+      req.headers["access-control-request-method"] || "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
+    );
+  }
+
   if (error.code === "LIMIT_FILE_SIZE") {
     return res.status(413).json({ error: "File too large (max 50MB)" });
   }

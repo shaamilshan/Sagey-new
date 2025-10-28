@@ -4,9 +4,13 @@ const mongoose = require("mongoose");
 // Getting all Categories to list on admin dashboard
 const getCategories = async (req, res) => {
   try {
-    const { status, search, page = 1, limit = 10 } = req.query;
+    const { status, search, page = 1, limit = 10, includeDeleted } = req.query;
 
     let filter = {};
+
+    if (!includeDeleted || includeDeleted === 'false') {
+      filter.isDeleted = { $ne: true };
+    }
 
     if (status) {
       if (status === "active") {
@@ -41,7 +45,7 @@ const getCategory = async (req, res) => {
       throw Error("Invalid ID!!!");
     }
 
-    const category = await Category.findOne({ _id: id });
+    const category = await Category.findOne({ _id: id, isDeleted: { $ne: true } });
 
     if (!category) {
       throw Error("No Such Category");
@@ -123,10 +127,61 @@ const deleteCategory = async (req, res) => {
   }
 };
 
+// Soft delete Category
+const softDeleteCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw Error("Invalid ID!!!");
+    }
+    const updated = await Category.findByIdAndUpdate(
+      id,
+      { $set: { isDeleted: true, deletedAt: new Date(), deletedBy: req.user?._id } },
+      { new: true }
+    );
+    if (!updated) throw Error("No Such Category");
+    res.status(200).json({ category: updated });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Restore Category
+const restoreCategory = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw Error("Invalid ID!!!");
+    }
+    const updated = await Category.findByIdAndUpdate(
+      id,
+      { $set: { isDeleted: false }, $unset: { deletedAt: 1, deletedBy: 1 } },
+      { new: true }
+    );
+    if (!updated) throw Error("No Such Category");
+    res.status(200).json({ category: updated });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Get Deleted Categories
+const getDeletedCategories = async (req, res) => {
+  try {
+    const cats = await Category.find({ isDeleted: true }).sort({ deletedAt: -1 });
+    res.status(200).json({ categories: cats });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getCategories,
   getCategory,
   createCategory,
   deleteCategory,
   updateCategory,
+  softDeleteCategory,
+  restoreCategory,
+  getDeletedCategories,
 };

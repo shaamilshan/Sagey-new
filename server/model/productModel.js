@@ -75,6 +75,19 @@ const productsSchema = new Schema(
     offer: {
       type: Number,
     },
+    // Soft delete flags
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: {
+      type: Date,
+    },
+    deletedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
   },
   { timestamps: true }
 );

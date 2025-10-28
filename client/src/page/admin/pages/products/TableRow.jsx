@@ -1,15 +1,23 @@
 import React from "react";
-import { AiOutlineEdit } from "react-icons/ai";
+import { AiOutlineEdit, AiOutlineDelete } from "react-icons/ai";
 import date from "date-and-time";
 import { useNavigate } from "react-router-dom";
 import StatusComponent from "../../../../components/StatusComponent";
 import { URL } from "@common/api";
+import { useDispatch } from "react-redux";
+import { softDeleteProduct } from "../../../../redux/actions/admin/productActions";
 
 const TableRow = ({ index, length, product }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const isLast = index === length - 1;
   const classes = isLast ? "p-4" : "p-4 border-b border-gray-200 ";
+
+  const onSoftDelete = (e) => {
+    e.stopPropagation();
+    dispatch(softDeleteProduct(product._id));
+  };
 
   return (
     <tr
@@ -45,13 +53,23 @@ const TableRow = ({ index, length, product }) => {
           : "No Data"}
       </td>
       <td className="admin-table-row">
-        <div className="flex items-center gap-2 text-lg">
+        <div className="flex items-center gap-4 text-lg">
           <span
             className="hover:text-gray-500"
-            onClick={() => navigate(`edit/${product._id}`)}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`edit/${product._id}`);
+            }}
           >
             <AiOutlineEdit />
           </span>
+          <button
+            className="text-red-600 hover:text-red-400"
+            onClick={onSoftDelete}
+            title="Move to Recently Deleted"
+          >
+            <AiOutlineDelete />
+          </button>
         </div>
       </td>
     </tr>

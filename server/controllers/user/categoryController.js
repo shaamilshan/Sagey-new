@@ -4,6 +4,8 @@ const getCategories = async (req, res) => {
   try {
     let filter = {
       isActive: true,
+      // Exclude soft-deleted categories from user-facing endpoints
+      isDeleted: { $ne: true },
     };
 
     const categories = await Category.find(filter);
