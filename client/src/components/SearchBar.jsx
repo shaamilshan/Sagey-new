@@ -52,7 +52,7 @@ const SearchBar = ({ handleClick, search, setSearch, placeholder, label, liveFil
       handleClick("search", suggestion.name);
     } else {
       // Navigate to collections without creating extra history entries
-      navigate(`/collections?search=${encodeURIComponent(suggestion.name)}`);
+      navigate(`collections?search=${encodeURIComponent(suggestion.name)}`);
     }
   };
 
@@ -117,7 +117,7 @@ const SearchBar = ({ handleClick, search, setSearch, placeholder, label, liveFil
     if (liveFilter) {
       handleClick("search", search);
     } else {
-      navigate(`/collections?search=${encodeURIComponent(search)}`);
+      navigate(`collections?search=${encodeURIComponent(search)}`);
     }
   };
 
